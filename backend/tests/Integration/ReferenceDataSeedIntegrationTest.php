@@ -26,7 +26,7 @@ final class ReferenceDataSeedIntegrationTest extends IntegrationTestCase
     {
         $em = static::getContainer()->get(EntityManagerInterface::class);
         $count = $em->createQuery(
-            'SELECT COUNT(te.id) FROM '.TypeEffectiveness::class.' te',
+            'SELECT COUNT(te.multiplierX100) FROM '.TypeEffectiveness::class.' te',
         )->getSingleScalarResult();
 
         self::assertSame(18 * 18, (int) $count);
@@ -40,7 +40,7 @@ final class ReferenceDataSeedIntegrationTest extends IntegrationTestCase
 
         $em = $container->get(EntityManagerInterface::class);
         $types = (int) $em->createQuery('SELECT COUNT(t.id) FROM '.Type::class.' t')->getSingleScalarResult();
-        $matrix = (int) $em->createQuery('SELECT COUNT(te.id) FROM '.TypeEffectiveness::class.' te')->getSingleScalarResult();
+        $matrix = (int) $em->createQuery('SELECT COUNT(te.multiplierX100) FROM '.TypeEffectiveness::class.' te')->getSingleScalarResult();
 
         self::assertSame(18, $types);
         self::assertSame(324, $matrix);

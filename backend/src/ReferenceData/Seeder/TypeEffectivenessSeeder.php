@@ -41,9 +41,19 @@ final class TypeEffectivenessSeeder
         $matrix = TypeEffectivenessMatrixBuilder::build();
 
         $inserted = 0;
-        $this->entityManager->wrapInTransaction(function () use ($matrix, $typeByCode, &$inserted): void {
+        $this->entityManager->wrapInTransaction(function () use ($matrix, &$inserted): void {
             // Idempotence: rebuild the full matrix atomically.
             $this->entityManager->getConnection()->executeStatement('DELETE FROM type_effectiveness');
+            // Raw DELETE leaves stale TypeEffectiveness in the identity map; clear and reload types.
+            $this->entityManager->clear();
+            $typeCodes = TypeEffectivenessMatrixBuilder::getTypeCodes();
+            $types = $this->entityManager->getRepository(Type::class)->findBy([
+                'code' => $typeCodes,
+            ]);
+            $typeByCode = [];
+            foreach ($types as $type) {
+                $typeByCode[$type->getCode()] = $type;
+            }
 
             foreach ($matrix->toRows() as [$attackingCode, $defendingCode, $multiplierX100]) {
                 $entity = new TypeEffectiveness();
