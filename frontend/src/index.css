@@ -202,16 +202,29 @@ p {
 
 .team-slots {
   display: grid;
-  gap: 0.65rem;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 0.5rem;
   margin-bottom: 1rem;
 }
 
+@media (max-width: 720px) {
+  .team-slots {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 400px) {
+  .team-slots {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 .team-slot {
-  display: grid;
-  grid-template-columns: 2rem 1fr auto;
-  gap: 0.75rem;
-  align-items: center;
-  padding: 0.6rem 0.65rem;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  min-width: 0;
+  padding: 0.45rem 0.35rem 0.5rem;
   border: 1px solid var(--border);
   border-radius: 10px;
   background: color-mix(in srgb, var(--surface) 92%, var(--bg));
@@ -219,14 +232,85 @@ p {
 
 .team-slot-index {
   font-family: var(--mono);
-  font-size: 0.85rem;
+  font-size: 0.7rem;
+  font-weight: 600;
   color: var(--muted);
   text-align: center;
+  margin-bottom: 0.25rem;
+}
+
+.team-slot-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.35rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.team-slot-sprite {
+  width: 104px;
+  height: 104px;
+  max-width: 100%;
+  object-fit: contain;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+.team-slot-sprite-fallback {
+  width: 104px;
+  height: 104px;
+  max-width: 100%;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--border) 55%, transparent);
+}
+
+.team-slot-sprite-fallback--empty {
+  opacity: 0.45;
+}
+
+.team-slot-types {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  justify-content: center;
+}
+
+.type-badge {
+  display: inline-block;
+  font-size: 0.65rem;
+  font-weight: 700;
+  line-height: 1.2;
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  letter-spacing: 0.02em;
 }
 
 .team-slot-name {
+  font-size: 0.72rem;
   font-weight: 600;
   color: var(--text-h);
+  line-height: 1.2;
+  word-break: break-word;
+  max-width: 100%;
+}
+
+.team-slot-name--empty {
+  font-weight: 500;
+}
+
+.team-slot-actions {
+  margin-top: 0.35rem;
+  display: flex;
+  justify-content: center;
+}
+
+.btn-slot-remove {
+  font-size: 0.7rem;
+  padding: 0.3rem 0.45rem;
+  width: 100%;
+  max-width: 100%;
 }
 
 .team-slot-meta {

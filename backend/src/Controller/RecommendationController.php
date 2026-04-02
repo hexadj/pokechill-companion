@@ -137,16 +137,8 @@ final class RecommendationController
             return 20;
         }
 
-        $raw = $data['limit'];
-        $limit = $this->coercePositiveInt($raw);
-        if ($limit === null) {
-            throw ApiRequestValidationException::recommendationPayloadInvalid(
-                'Validation failed.',
-                ['limit' => ['limit must be an integer between 1 and 50.']],
-            );
-        }
-
-        if ($limit < 1 || $limit > 50) {
+        $limit = $this->coercePositiveInt($data['limit']);
+        if ($limit === null || $limit < 1 || $limit > 50) {
             throw ApiRequestValidationException::recommendationPayloadInvalid(
                 'Validation failed.',
                 ['limit' => ['limit must be an integer between 1 and 50.']],
