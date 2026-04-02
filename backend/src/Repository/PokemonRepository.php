@@ -7,7 +7,7 @@ namespace App\Repository;
 use App\Entity\Pokemon;
 use Doctrine\ORM\EntityManagerInterface;
 
-final class PokemonRepository
+class PokemonRepository
 {
     public function __construct(
         private readonly EntityManagerInterface $entityManager,

@@ -8,7 +8,7 @@ use App\Entity\TypeEffectiveness;
 use App\ReferenceData\Dto\TypeEffectivenessMatrix;
 use Doctrine\ORM\EntityManagerInterface;
 
-final class TypeEffectivenessRepository
+class TypeEffectivenessRepository
 {
     private ?TypeEffectivenessMatrix $matrix = null;
 
