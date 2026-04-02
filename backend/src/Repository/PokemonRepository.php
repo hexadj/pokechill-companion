@@ -99,5 +99,43 @@ final class PokemonRepository
 
         return $pokemons;
     }
-}
 
+    /**
+     * Active Pokémon for reference list: ordered by name, optional case-insensitive substring search.
+     *
+     * @return Pokemon[]
+     */
+    public function findActiveForList(?string $search, int $limit): array
+    {
+        $qb = $this->entityManager->createQueryBuilder();
+        $qb->select('p', 'primaryType', 'secondaryType')
+            ->from(Pokemon::class, 'p')
+            ->join('p.primaryType', 'primaryType')
+            ->leftJoin('p.secondaryType', 'secondaryType')
+            ->where('p.isActive = true')
+            ->orderBy('p.name', 'ASC')
+            ->addOrderBy('p.sourceKey', 'ASC')
+            ->setMaxResults($limit);
+
+        $trimmed = $search !== null ? trim($search) : '';
+        if ($trimmed !== '') {
+            $literal = mb_strtolower($trimmed);
+            $pattern = '%'.self::escapeLikePattern($literal).'%';
+            $qb->andWhere('LOWER(p.name) LIKE :nameSearch ESCAPE \'!\'')
+                ->setParameter('nameSearch', $pattern);
+        }
+
+        /** @var Pokemon[] $pokemons */
+        $pokemons = $qb->getQuery()->getResult();
+
+        return $pokemons;
+    }
+
+    /**
+     * Escape LIKE wildcards for a literal substring; uses ESCAPE '!' in SQL.
+     */
+    private static function escapeLikePattern(string $value): string
+    {
+        return str_replace(['!', '%', '_'], ['!!', '!%', '!_'], $value);
+    }
+}
