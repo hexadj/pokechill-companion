@@ -1,0 +1,13 @@
+# éditeurs / ides (configs locales utilisateur)
+.vscode/
+.idea/
+.cursor/
+.fleet/
+.vs/
+
+# agents cli (claude code, codex)
+.claude/
+.codex/
+
+# project management (hors dépôt)
+project-management/
