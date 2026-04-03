@@ -5,14 +5,20 @@ declare(strict_types=1);
 namespace App\Tests\Unit\ReferenceData\Import;
 
 use App\ReferenceData\Import\Dto\ExtractedPokechillPokemon;
+use App\ReferenceData\Import\PokechillStatRatingCalculator;
 use App\ReferenceData\Import\PokechillPokemonNormalizer;
 use PHPUnit\Framework\TestCase;
 
 final class PokechillPokemonNormalizerTest extends TestCase
 {
+    private function normalizer(): PokechillPokemonNormalizer
+    {
+        return new PokechillPokemonNormalizer(new PokechillStatRatingCalculator());
+    }
+
     public function testNormalizesTypesToLowercaseAndTrims(): void
     {
-        $n = new PokechillPokemonNormalizer();
+        $n = $this->normalizer();
         $extracted = [
             new ExtractedPokechillPokemon(
                 sourceKey: 'fooBar',
@@ -37,7 +43,7 @@ final class PokechillPokemonNormalizerTest extends TestCase
 
     public function testEmptySecondaryTypeBecomesNull(): void
     {
-        $n = new PokechillPokemonNormalizer();
+        $n = $this->normalizer();
         $extracted = [
             new ExtractedPokechillPokemon(
                 sourceKey: 'x',
@@ -61,7 +67,7 @@ final class PokechillPokemonNormalizerTest extends TestCase
     public function testMissingPrimaryTypeThrows(): void
     {
         $this->expectException(\RuntimeException::class);
-        $n = new PokechillPokemonNormalizer();
+        $n = $this->normalizer();
         $extracted = [
             new ExtractedPokechillPokemon(
                 sourceKey: 'bad',
@@ -78,5 +84,34 @@ final class PokechillPokemonNormalizerTest extends TestCase
             ),
         ];
         $n->normalize($extracted);
+    }
+
+    public function testConvertsRawBaseStatsToStarRatings(): void
+    {
+        $n = $this->normalizer();
+        $extracted = [
+            new ExtractedPokechillPokemon(
+                sourceKey: 'refStat',
+                rename: null,
+                hp: 0,
+                atk: 95,
+                def: 95,
+                satk: 110,
+                sdef: 95,
+                spe: 182,
+                primaryTypeCode: 'normal',
+                secondaryTypeCode: null,
+                isHidden: false,
+            ),
+        ];
+
+        $out = $n->normalize($extracted);
+        self::assertCount(1, $out);
+        self::assertSame(1, $out[0]->hp);
+        self::assertSame(3, $out[0]->atk);
+        self::assertSame(3, $out[0]->def);
+        self::assertSame(4, $out[0]->satk);
+        self::assertSame(3, $out[0]->sdef);
+        self::assertSame(6, $out[0]->spe);
     }
 }

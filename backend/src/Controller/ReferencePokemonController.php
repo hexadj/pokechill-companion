@@ -6,6 +6,7 @@ namespace App\Controller;
 
 use App\Entity\Pokemon;
 use App\Error\ApiRequestValidationException;
+use App\ReferenceData\Import\PokechillDivisionCalculator;
 use App\Repository\PokemonRepository;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -16,6 +17,7 @@ final class ReferencePokemonController
 {
     public function __construct(
         private readonly PokemonRepository $pokemonRepository,
+        private readonly PokechillDivisionCalculator $pokechillDivisionCalculator,
     ) {
     }
 
@@ -71,10 +73,31 @@ final class ReferencePokemonController
     }
 
     /**
-     * @return array{sourceKey: string, name: string, primaryTypeCode: string, secondaryTypeCode: string|null}
+     * @return array{
+     *     sourceKey: string,
+     *     name: string,
+     *     primaryTypeCode: string,
+     *     secondaryTypeCode: string|null,
+     *     hp: int,
+     *     atk: int,
+     *     def: int,
+     *     satk: int,
+     *     sdef: int,
+     *     spe: int,
+     *     bstSum: int,
+     *     division: string
+     * }
      */
     private function pokemonToArray(Pokemon $pokemon): array
     {
+        $hp = $pokemon->getHp();
+        $atk = $pokemon->getAtk();
+        $def = $pokemon->getDef();
+        $satk = $pokemon->getSatk();
+        $sdef = $pokemon->getSdef();
+        $spe = $pokemon->getSpe();
+        $bstSum = $this->pokechillDivisionCalculator->bstSum($hp, $atk, $def, $satk, $sdef, $spe);
+
         return [
             'sourceKey' => $pokemon->getSourceKey(),
             'name' => $pokemon->getName(),
@@ -82,6 +105,14 @@ final class ReferencePokemonController
             'secondaryTypeCode' => $pokemon->getSecondaryType() !== null
                 ? strtolower($pokemon->getSecondaryType()->getCode())
                 : null,
+            'hp' => $hp,
+            'atk' => $atk,
+            'def' => $def,
+            'satk' => $satk,
+            'sdef' => $sdef,
+            'spe' => $spe,
+            'bstSum' => $bstSum,
+            'division' => $this->pokechillDivisionCalculator->divisionFromBstSum($bstSum),
         ];
     }
 }

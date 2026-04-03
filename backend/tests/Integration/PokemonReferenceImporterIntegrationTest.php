@@ -20,12 +20,12 @@ final class PokemonReferenceImporterIntegrationTest extends IntegrationTestCase
         return new PokemonReferenceData(
             sourceKey: $key,
             name: $name,
-            hp: 20,
-            atk: 20,
-            def: 20,
-            satk: 20,
-            sdef: 20,
-            spe: 20,
+            hp: 1,
+            atk: 1,
+            def: 1,
+            satk: 1,
+            sdef: 1,
+            spe: 1,
             primaryTypeCode: $primaryTypeCode,
             secondaryTypeCode: $secondaryTypeCode,
             isActive: true,
@@ -150,12 +150,12 @@ final class PokemonReferenceImporterIntegrationTest extends IntegrationTestCase
         $bad = new PokemonReferenceData(
             sourceKey: 'bad-type-'.bin2hex(random_bytes(4)),
             name: 'X',
-            hp: 10,
-            atk: 10,
-            def: 10,
-            satk: 10,
-            sdef: 10,
-            spe: 10,
+            hp: 3,
+            atk: 3,
+            def: 3,
+            satk: 3,
+            sdef: 3,
+            spe: 3,
             primaryTypeCode: 'notarealtype',
             secondaryTypeCode: null,
             isActive: true,
@@ -187,7 +187,7 @@ final class PokemonReferenceImporterIntegrationTest extends IntegrationTestCase
         $importer->import([$this->sample($key, 'Original', 'fire', null)], false, false);
 
         $result = $importer->import([
-            $this->sampleWithStats($key, 99, 98, 97, 96, 95, 94, 'Original', 'water', 'flying'),
+            $this->sampleWithStats($key, 6, 5, 4, 3, 2, 1, 'Original', 'water', 'flying'),
         ], false, true);
 
         self::assertTrue($result['dryRunApplied']);
@@ -200,11 +200,11 @@ final class PokemonReferenceImporterIntegrationTest extends IntegrationTestCase
         self::assertNotNull($entity);
         self::assertSame('fire', $entity->getPrimaryType()->getCode());
         self::assertNull($entity->getSecondaryType());
-        self::assertSame(20, $entity->getHp());
-        self::assertSame(20, $entity->getAtk());
-        self::assertSame(20, $entity->getDef());
-        self::assertSame(20, $entity->getSatk());
-        self::assertSame(20, $entity->getSdef());
-        self::assertSame(20, $entity->getSpe());
+        self::assertSame(1, $entity->getHp());
+        self::assertSame(1, $entity->getAtk());
+        self::assertSame(1, $entity->getDef());
+        self::assertSame(1, $entity->getSatk());
+        self::assertSame(1, $entity->getSdef());
+        self::assertSame(1, $entity->getSpe());
     }
 }

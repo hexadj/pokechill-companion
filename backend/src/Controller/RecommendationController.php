@@ -180,7 +180,20 @@ final class RecommendationController
     }
 
     /**
-     * @return array{sourceKey: string, name: string, primaryTypeCode: string, secondaryTypeCode: string|null}
+     * @return array{
+     *     sourceKey: string,
+     *     name: string,
+     *     primaryTypeCode: string,
+     *     secondaryTypeCode: string|null,
+     *     hp: int,
+     *     atk: int,
+     *     def: int,
+     *     satk: int,
+     *     sdef: int,
+     *     spe: int,
+     *     bstSum: int,
+     *     division: string
+     * }
      */
     private function opponentToArray(OpponentPokemonView $v): array
     {
@@ -189,6 +202,14 @@ final class RecommendationController
             'name' => $v->name,
             'primaryTypeCode' => $v->primaryTypeCode,
             'secondaryTypeCode' => $v->secondaryTypeCode,
+            'hp' => $v->hp,
+            'atk' => $v->atk,
+            'def' => $v->def,
+            'satk' => $v->satk,
+            'sdef' => $v->sdef,
+            'spe' => $v->spe,
+            'bstSum' => $v->bstSum,
+            'division' => $v->division,
         ];
     }
 

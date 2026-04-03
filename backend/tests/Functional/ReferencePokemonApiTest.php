@@ -20,6 +20,10 @@ final class ReferencePokemonApiTest extends ApiWebTestCase
         $sorted = $names;
         sort($sorted);
         self::assertSame($sorted, $names);
+
+        foreach ($data['items'] as $item) {
+            $this->assertInformativeStatsPayload($item);
+        }
     }
 
     public function testSearchFiltersByName(): void
@@ -66,5 +70,20 @@ final class ReferencePokemonApiTest extends ApiWebTestCase
         $this->client->request('GET', '/api/v1/reference/pokemon?limit=0');
 
         self::assertResponseStatusCodeSame(422);
+    }
+
+    /**
+     * @param array<string, mixed> $item
+     */
+    private function assertInformativeStatsPayload(array $item): void
+    {
+        self::assertSame(3, $item['hp']);
+        self::assertSame(4, $item['atk']);
+        self::assertSame(3, $item['def']);
+        self::assertSame(4, $item['satk']);
+        self::assertSame(3, $item['sdef']);
+        self::assertSame(3, $item['spe']);
+        self::assertSame(20, $item['bstSum']);
+        self::assertSame('S', $item['division']);
     }
 }

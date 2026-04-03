@@ -314,7 +314,11 @@ p {
 }
 
 .team-slot-meta {
-  font-size: 0.85rem;
+  font-size: 0.62rem;
+  line-height: 1.2;
+  margin-top: 0.15rem;
+  text-align: center;
+  max-width: 100%;
 }
 
 .search-field {

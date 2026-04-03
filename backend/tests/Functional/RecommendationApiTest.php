@@ -27,6 +27,8 @@ final class RecommendationApiTest extends ApiWebTestCase
         self::assertCount(2, $data['opponentTeam']);
         self::assertSame('func-opp-b', $data['opponentTeam'][0]['sourceKey']);
         self::assertSame('func-opp-a', $data['opponentTeam'][1]['sourceKey']);
+        $this->assertInformativeStatsPayload($data['opponentTeam'][0]);
+        $this->assertInformativeStatsPayload($data['opponentTeam'][1]);
 
         $scores = array_map(static fn (array $r): float => $r['score'], $data['recommendations']);
         $sorted = $scores;
@@ -85,5 +87,20 @@ final class RecommendationApiTest extends ApiWebTestCase
         );
 
         self::assertResponseStatusCodeSame(422);
+    }
+
+    /**
+     * @param array<string, mixed> $item
+     */
+    private function assertInformativeStatsPayload(array $item): void
+    {
+        self::assertSame(3, $item['hp']);
+        self::assertSame(4, $item['atk']);
+        self::assertSame(3, $item['def']);
+        self::assertSame(4, $item['satk']);
+        self::assertSame(3, $item['sdef']);
+        self::assertSame(3, $item['spe']);
+        self::assertSame(20, $item['bstSum']);
+        self::assertSame('S', $item['division']);
     }
 }

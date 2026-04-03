@@ -32,7 +32,7 @@ JS);
         self::assertSame('visibleMon', $result['pokemons'][0]->sourceKey);
     }
 
-    public function testZeroStatsAreClampedToOne(): void
+    public function testZeroStatsRemainRawAtExtraction(): void
     {
         $extractor = new PokechillPokemonExtractor();
 
@@ -44,7 +44,7 @@ pkmn.zeroMon = {
 JS);
 
         self::assertCount(1, $result['pokemons']);
-        self::assertSame(1, $result['pokemons'][0]->hp);
-        self::assertSame(1, $result['pokemons'][0]->spe);
+        self::assertSame(0, $result['pokemons'][0]->hp);
+        self::assertSame(0, $result['pokemons'][0]->spe);
     }
 }

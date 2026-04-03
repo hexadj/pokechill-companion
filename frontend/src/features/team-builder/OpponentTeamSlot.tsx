@@ -50,6 +50,9 @@ export function OpponentTeamSlot({ index, pokemon, onRemove }: OpponentTeamSlotP
               {pokemon.secondaryTypeCode ? <TypeBadge typeCode={pokemon.secondaryTypeCode} /> : null}
             </div>
             <div className="team-slot-name">{pokemon.name}</div>
+            <div className="team-slot-meta muted" title="Pokechill division (informative)">
+              Division {pokemon.division}
+            </div>
           </>
         ) : (
           <>

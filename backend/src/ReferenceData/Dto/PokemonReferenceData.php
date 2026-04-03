@@ -6,16 +6,18 @@ namespace App\ReferenceData\Dto;
 
 /**
  * Minimal reference contract for an imported Pokemon (V1).
+ *
+ * The six stat fields are Pokechill star ratings 1..6 (statToRating), not raw BST.
  */
 final class PokemonReferenceData
 {
     /**
-     * @param int $hp
-     * @param int $atk
-     * @param int $def
-     * @param int $satk
-     * @param int $sdef
-     * @param int $spe
+     * @param int $hp    star rating 1..6
+     * @param int $atk   star rating 1..6
+     * @param int $def   star rating 1..6
+     * @param int $satk  star rating 1..6
+     * @param int $sdef  star rating 1..6
+     * @param int $spe   star rating 1..6
      */
     public function __construct(
         public readonly string $sourceKey,

@@ -1,8 +1,17 @@
+/** Pokechill star ratings 1..6; bstSum and division are informative (not used for V1 scoring). */
 export type ReferencePokemonItem = {
   sourceKey: string
   name: string
   primaryTypeCode: string
   secondaryTypeCode: string | null
+  hp: number
+  atk: number
+  def: number
+  satk: number
+  sdef: number
+  spe: number
+  bstSum: number
+  division: string
 }
 
 export type RecommendationRequest = {

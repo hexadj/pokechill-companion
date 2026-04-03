@@ -6,6 +6,7 @@ namespace App\Tests\Unit\Recommendation;
 
 use App\Entity\Pokemon;
 use App\Recommendation\Dto\RecommendationQuery;
+use App\ReferenceData\Import\PokechillDivisionCalculator;
 use App\Recommendation\Service\MatchupScorer;
 use App\Recommendation\Service\RecommendationService;
 use App\Repository\PokemonRepository;
@@ -81,7 +82,12 @@ final class RecommendationServiceTest extends TestCase
 
     private function service(PokemonRepository $pokemonRepo): RecommendationService
     {
-        return new RecommendationService($pokemonRepo, $this->makeMatrixRepository(), new MatchupScorer());
+        return new RecommendationService(
+            $pokemonRepo,
+            $this->makeMatrixRepository(),
+            new MatchupScorer(),
+            new PokechillDivisionCalculator(),
+        );
     }
 
     public function testRanksStrongerCandidateFirstWhenScoresDiffer(): void

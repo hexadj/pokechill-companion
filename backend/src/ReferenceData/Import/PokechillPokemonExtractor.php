@@ -334,12 +334,6 @@ final class PokechillPokemonExtractor
                 throw new RuntimeException(sprintf('Invalid %s=%d for "%s".', $statKey, $value, $sourceKey));
             }
 
-            // Pokechill contains legitimate 0 values for some stats (ex: Slaking speed).
-            // Our current DB constraints require strictly positive values.
-            // We clamp to 1 to keep import deterministic and avoid division by zero later.
-            if ($value === 0) {
-                return 1;
-            }
             return $value;
         }
 
@@ -360,9 +354,6 @@ final class PokechillPokemonExtractor
                 ));
             }
 
-            if ($valueInt === 0) {
-                return 1;
-            }
             return $valueInt;
         }
 
@@ -499,4 +490,3 @@ final class PokechillPokemonExtractor
         throw new RuntimeException('Unable to extract balanced block.');
     }
 }
-

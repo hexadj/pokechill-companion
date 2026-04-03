@@ -11,6 +11,7 @@ use App\Recommendation\Dto\RecommendationResult;
 use App\Recommendation\Dto\RecommendationView;
 use App\Recommendation\Exception\InvalidRecommendationQueryException;
 use App\Recommendation\Exception\OpponentPokemonNotFoundException;
+use App\ReferenceData\Import\PokechillDivisionCalculator;
 use App\Repository\PokemonRepository;
 use App\Repository\TypeEffectivenessRepository;
 
@@ -25,6 +26,7 @@ final class RecommendationService
         private readonly PokemonRepository $pokemonRepository,
         private readonly TypeEffectivenessRepository $typeEffectivenessRepository,
         private readonly MatchupScorer $matchupScorer,
+        private readonly PokechillDivisionCalculator $pokechillDivisionCalculator,
     ) {
     }
 
@@ -151,6 +153,14 @@ final class RecommendationService
 
     private function toOpponentView(Pokemon $pokemon): OpponentPokemonView
     {
+        $hp = $pokemon->getHp();
+        $atk = $pokemon->getAtk();
+        $def = $pokemon->getDef();
+        $satk = $pokemon->getSatk();
+        $sdef = $pokemon->getSdef();
+        $spe = $pokemon->getSpe();
+        $bstSum = $this->pokechillDivisionCalculator->bstSum($hp, $atk, $def, $satk, $sdef, $spe);
+
         return new OpponentPokemonView(
             sourceKey: $pokemon->getSourceKey(),
             name: $pokemon->getName(),
@@ -158,6 +168,14 @@ final class RecommendationService
             secondaryTypeCode: $pokemon->getSecondaryType() !== null
                 ? strtolower($pokemon->getSecondaryType()->getCode())
                 : null,
+            hp: $hp,
+            atk: $atk,
+            def: $def,
+            satk: $satk,
+            sdef: $sdef,
+            spe: $spe,
+            bstSum: $bstSum,
+            division: $this->pokechillDivisionCalculator->divisionFromBstSum($bstSum),
         );
     }
 

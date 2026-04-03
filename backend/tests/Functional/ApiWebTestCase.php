@@ -60,12 +60,13 @@ abstract class ApiWebTestCase extends WebTestCase
             $p->setName($name);
             $p->setPrimaryType($primary);
             $p->setSecondaryType($secondary);
-            $p->setHp(50);
-            $p->setAtk(80);
-            $p->setDef(50);
-            $p->setSatk(80);
-            $p->setSdef(50);
-            $p->setSpe(50);
+            // Pokechill star ratings 1..6 (must satisfy DB CHECK constraints).
+            $p->setHp(3);
+            $p->setAtk(4);
+            $p->setDef(3);
+            $p->setSatk(4);
+            $p->setSdef(3);
+            $p->setSpe(3);
             $p->setIsActive($active);
             $em->persist($p);
         }

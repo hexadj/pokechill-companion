@@ -10,9 +10,16 @@ use RuntimeException;
 
 /**
  * Normalizes extracted Pokechill entries into our V1 persistence contract.
+ *
+ * Raw BST from the extractor is converted with {@see PokechillStatRatingCalculator}.
  */
 final class PokechillPokemonNormalizer
 {
+    public function __construct(
+        private readonly PokechillStatRatingCalculator $statRatingCalculator,
+    ) {
+    }
+
     /**
      * @param ExtractedPokechillPokemon[] $extracted
      * @return PokemonReferenceData[]
@@ -47,12 +54,12 @@ final class PokechillPokemonNormalizer
             $result[] = new PokemonReferenceData(
                 sourceKey: $pokemon->sourceKey,
                 name: $name,
-                hp: $pokemon->hp,
-                atk: $pokemon->atk,
-                def: $pokemon->def,
-                satk: $pokemon->satk,
-                sdef: $pokemon->sdef,
-                spe: $pokemon->spe,
+                hp: $this->statRatingCalculator->baseStatToStarRating($pokemon->hp),
+                atk: $this->statRatingCalculator->baseStatToStarRating($pokemon->atk),
+                def: $this->statRatingCalculator->baseStatToStarRating($pokemon->def),
+                satk: $this->statRatingCalculator->baseStatToStarRating($pokemon->satk),
+                sdef: $this->statRatingCalculator->baseStatToStarRating($pokemon->sdef),
+                spe: $this->statRatingCalculator->baseStatToStarRating($pokemon->spe),
                 primaryTypeCode: strtolower($primaryTypeCode),
                 secondaryTypeCode: $secondaryTypeCode !== null ? strtolower($secondaryTypeCode) : null,
                 isActive: true,
