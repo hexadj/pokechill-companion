@@ -176,6 +176,8 @@ final class RecommendationService
             spe: $spe,
             bstSum: $bstSum,
             division: $this->pokechillDivisionCalculator->divisionFromBstSum($bstSum),
+            isObtainable: $pokemon->isObtainable(),
+            obtainabilityCode: $pokemon->getObtainabilityCode(),
         );
     }
 

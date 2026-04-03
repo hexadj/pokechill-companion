@@ -85,7 +85,9 @@ final class ReferencePokemonController
      *     sdef: int,
      *     spe: int,
      *     bstSum: int,
-     *     division: string
+     *     division: string,
+     *     isObtainable: bool,
+     *     obtainabilityCode: string|null
      * }
      */
     private function pokemonToArray(Pokemon $pokemon): array
@@ -113,6 +115,8 @@ final class ReferencePokemonController
             'spe' => $spe,
             'bstSum' => $bstSum,
             'division' => $this->pokechillDivisionCalculator->divisionFromBstSum($bstSum),
+            'isObtainable' => $pokemon->isObtainable(),
+            'obtainabilityCode' => $pokemon->getObtainabilityCode(),
         ];
     }
 }

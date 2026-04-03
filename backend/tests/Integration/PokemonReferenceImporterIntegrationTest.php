@@ -16,6 +16,8 @@ final class PokemonReferenceImporterIntegrationTest extends IntegrationTestCase
         string $name = 'Imported Mon',
         string $primaryTypeCode = 'fire',
         ?string $secondaryTypeCode = null,
+        bool $isObtainable = true,
+        ?string $obtainabilityCode = null,
     ): PokemonReferenceData {
         return new PokemonReferenceData(
             sourceKey: $key,
@@ -29,6 +31,8 @@ final class PokemonReferenceImporterIntegrationTest extends IntegrationTestCase
             primaryTypeCode: $primaryTypeCode,
             secondaryTypeCode: $secondaryTypeCode,
             isActive: true,
+            isObtainable: $isObtainable,
+            obtainabilityCode: $obtainabilityCode,
         );
     }
 
@@ -43,6 +47,8 @@ final class PokemonReferenceImporterIntegrationTest extends IntegrationTestCase
         string $name = 'Imported Mon',
         string $primaryTypeCode = 'fire',
         ?string $secondaryTypeCode = null,
+        bool $isObtainable = true,
+        ?string $obtainabilityCode = null,
     ): PokemonReferenceData {
         return new PokemonReferenceData(
             sourceKey: $key,
@@ -56,6 +62,8 @@ final class PokemonReferenceImporterIntegrationTest extends IntegrationTestCase
             primaryTypeCode: $primaryTypeCode,
             secondaryTypeCode: $secondaryTypeCode,
             isActive: true,
+            isObtainable: $isObtainable,
+            obtainabilityCode: $obtainabilityCode,
         );
     }
 
@@ -103,6 +111,52 @@ final class PokemonReferenceImporterIntegrationTest extends IntegrationTestCase
         $entity = $em->getRepository(Pokemon::class)->findOneBy(['sourceKey' => $key]);
         self::assertNotNull($entity);
         self::assertSame('New', $entity->getName());
+    }
+
+    public function testCreatesObtainabilityState(): void
+    {
+        $importer = static::getContainer()->get(PokemonReferenceImporter::class);
+        $key = 'integration-obt-create-'.bin2hex(random_bytes(4));
+
+        $result = $importer->import([
+            $this->sample(
+                $key,
+                isObtainable: false,
+                obtainabilityCode: 'unobtainable',
+            ),
+        ], false, false);
+
+        self::assertSame(1, $result['created']);
+
+        $em = static::getContainer()->get(EntityManagerInterface::class);
+        $em->clear();
+        $entity = $em->getRepository(Pokemon::class)->findOneBy(['sourceKey' => $key]);
+        self::assertNotNull($entity);
+        self::assertFalse($entity->isObtainable());
+        self::assertSame('unobtainable', $entity->getObtainabilityCode());
+    }
+
+    public function testUpdatesWhenObtainabilityChanges(): void
+    {
+        $importer = static::getContainer()->get(PokemonReferenceImporter::class);
+        $key = 'integration-obt-update-'.bin2hex(random_bytes(4));
+        $importer->import([
+            $this->sample(
+                $key,
+                isObtainable: false,
+                obtainabilityCode: 'unobtainable',
+            ),
+        ], false, false);
+
+        $result = $importer->import([$this->sample($key)], false, false);
+        self::assertSame(1, $result['updated']);
+
+        $em = static::getContainer()->get(EntityManagerInterface::class);
+        $em->clear();
+        $entity = $em->getRepository(Pokemon::class)->findOneBy(['sourceKey' => $key]);
+        self::assertNotNull($entity);
+        self::assertTrue($entity->isObtainable());
+        self::assertNull($entity->getObtainabilityCode());
     }
 
     public function testUpdatesWhenTypesChange(): void
@@ -206,5 +260,31 @@ final class PokemonReferenceImporterIntegrationTest extends IntegrationTestCase
         self::assertSame(1, $entity->getSatk());
         self::assertSame(1, $entity->getSdef());
         self::assertSame(1, $entity->getSpe());
+    }
+
+    public function testDryRunDoesNotWriteObtainabilityChanges(): void
+    {
+        $importer = static::getContainer()->get(PokemonReferenceImporter::class);
+        $key = 'integration-dry-obt-'.bin2hex(random_bytes(4));
+        $importer->import([$this->sample($key)], false, false);
+
+        $result = $importer->import([
+            $this->sample(
+                $key,
+                isObtainable: false,
+                obtainabilityCode: 'unobtainable',
+            ),
+        ], false, true);
+
+        self::assertTrue($result['dryRunApplied']);
+        self::assertSame(0, $result['created']);
+        self::assertSame(1, $result['updated']);
+
+        $em = static::getContainer()->get(EntityManagerInterface::class);
+        $em->clear();
+        $entity = $em->getRepository(Pokemon::class)->findOneBy(['sourceKey' => $key]);
+        self::assertNotNull($entity);
+        self::assertTrue($entity->isObtainable());
+        self::assertNull($entity->getObtainabilityCode());
     }
 }

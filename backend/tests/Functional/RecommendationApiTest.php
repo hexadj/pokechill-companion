@@ -36,6 +36,29 @@ final class RecommendationApiTest extends ApiWebTestCase
         self::assertSame($sorted, $scores);
     }
 
+    public function testValidPayloadIncludesUnobtainableOpponentMetadata(): void
+    {
+        $this->client->request(
+            'POST',
+            '/api/v1/recommendations',
+            [],
+            [],
+            ['CONTENT_TYPE' => 'application/json'],
+            json_encode([
+                'opponentSourceKeys' => ['func-opp-unob', 'func-opp-a'],
+                'limit' => 5,
+            ], JSON_THROW_ON_ERROR),
+        );
+
+        self::assertResponseIsSuccessful();
+        $data = json_decode($this->client->getResponse()->getContent(), true, 512, JSON_THROW_ON_ERROR);
+        self::assertCount(2, $data['opponentTeam']);
+        self::assertSame('func-opp-unob', $data['opponentTeam'][0]['sourceKey']);
+        self::assertSame('func-opp-a', $data['opponentTeam'][1]['sourceKey']);
+        $this->assertInformativeStatsPayload($data['opponentTeam'][0], false, 'unobtainable');
+        $this->assertInformativeStatsPayload($data['opponentTeam'][1]);
+    }
+
     public function testInvalidJsonReturns400(): void
     {
         $this->client->request(
@@ -92,7 +115,11 @@ final class RecommendationApiTest extends ApiWebTestCase
     /**
      * @param array<string, mixed> $item
      */
-    private function assertInformativeStatsPayload(array $item): void
+    private function assertInformativeStatsPayload(
+        array $item,
+        bool $expectedIsObtainable = true,
+        ?string $expectedObtainabilityCode = null,
+    ): void
     {
         self::assertSame(3, $item['hp']);
         self::assertSame(4, $item['atk']);
@@ -102,5 +129,7 @@ final class RecommendationApiTest extends ApiWebTestCase
         self::assertSame(3, $item['spe']);
         self::assertSame(20, $item['bstSum']);
         self::assertSame('S', $item['division']);
+        self::assertSame($expectedIsObtainable, $item['isObtainable']);
+        self::assertSame($expectedObtainabilityCode, $item['obtainabilityCode']);
     }
 }

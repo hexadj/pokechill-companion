@@ -12,6 +12,9 @@ export type ReferencePokemonItem = {
   spe: number
   bstSum: number
   division: string
+  /** Informative; from import obtainability pipeline. */
+  isObtainable: boolean
+  obtainabilityCode: string | null
 }
 
 export type RecommendationRequest = {

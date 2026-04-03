@@ -48,6 +48,12 @@ class Pokemon
     #[ORM\Column(name: 'is_active', type: 'boolean', options: ['default' => true])]
     private bool $isActive = true;
 
+    #[ORM\Column(name: 'is_obtainable', type: 'boolean', options: ['default' => true])]
+    private bool $isObtainable = true;
+
+    #[ORM\Column(name: 'obtainability_code', type: 'string', length: 32, nullable: true)]
+    private ?string $obtainabilityCode = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -181,6 +187,30 @@ class Pokemon
     public function setIsActive(bool $isActive): self
     {
         $this->isActive = $isActive;
+
+        return $this;
+    }
+
+    public function isObtainable(): bool
+    {
+        return $this->isObtainable;
+    }
+
+    public function setIsObtainable(bool $isObtainable): self
+    {
+        $this->isObtainable = $isObtainable;
+
+        return $this;
+    }
+
+    public function getObtainabilityCode(): ?string
+    {
+        return $this->obtainabilityCode;
+    }
+
+    public function setObtainabilityCode(?string $obtainabilityCode): self
+    {
+        $this->obtainabilityCode = $obtainabilityCode;
 
         return $this;
     }

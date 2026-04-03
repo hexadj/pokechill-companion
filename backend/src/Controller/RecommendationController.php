@@ -192,7 +192,9 @@ final class RecommendationController
      *     sdef: int,
      *     spe: int,
      *     bstSum: int,
-     *     division: string
+     *     division: string,
+     *     isObtainable: bool,
+     *     obtainabilityCode: string|null
      * }
      */
     private function opponentToArray(OpponentPokemonView $v): array
@@ -210,6 +212,8 @@ final class RecommendationController
             'spe' => $v->spe,
             'bstSum' => $v->bstSum,
             'division' => $v->division,
+            'isObtainable' => $v->isObtainable,
+            'obtainabilityCode' => $v->obtainabilityCode,
         ];
     }
 

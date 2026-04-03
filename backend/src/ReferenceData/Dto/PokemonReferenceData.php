@@ -31,7 +31,28 @@ final class PokemonReferenceData
         public readonly string $primaryTypeCode,
         public readonly ?string $secondaryTypeCode,
         public readonly bool $isActive,
+        public readonly bool $isObtainable = true,
+        public readonly ?string $obtainabilityCode = null,
     ) {
+    }
+
+    public function withObtainability(bool $isObtainable, ?string $obtainabilityCode): self
+    {
+        return new self(
+            sourceKey: $this->sourceKey,
+            name: $this->name,
+            hp: $this->hp,
+            atk: $this->atk,
+            def: $this->def,
+            satk: $this->satk,
+            sdef: $this->sdef,
+            spe: $this->spe,
+            primaryTypeCode: $this->primaryTypeCode,
+            secondaryTypeCode: $this->secondaryTypeCode,
+            isActive: $this->isActive,
+            isObtainable: $isObtainable,
+            obtainabilityCode: $obtainabilityCode,
+        );
     }
 }
 

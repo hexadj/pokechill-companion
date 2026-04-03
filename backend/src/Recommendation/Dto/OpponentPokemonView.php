@@ -24,6 +24,8 @@ final class OpponentPokemonView
         public readonly int $spe,
         public readonly int $bstSum,
         public readonly string $division,
+        public readonly bool $isObtainable,
+        public readonly ?string $obtainabilityCode,
     ) {
     }
 }

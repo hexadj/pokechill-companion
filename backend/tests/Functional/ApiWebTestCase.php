@@ -43,23 +43,25 @@ abstract class ApiWebTestCase extends WebTestCase
         self::assertNotNull($water);
 
         $rows = [
-            ['func-list-z', 'Zzz Func', $fire, null, true],
-            ['func-list-a', 'Aaa Func', $water, null, true],
-            ['func-list-inactive', 'Hidden Func', $fire, null, false],
-            ['func-opp-b', 'Opp B', $water, null, true],
-            ['func-opp-a', 'Opp A', $fire, null, true],
-            ['func-cand-x', 'Cand X', $fire, null, true],
+            ['key' => 'func-list-z', 'name' => 'Zzz Func', 'primary' => $fire, 'secondary' => null, 'active' => true, 'isObtainable' => true, 'obtainabilityCode' => null],
+            ['key' => 'func-list-a', 'name' => 'Aaa Func', 'primary' => $water, 'secondary' => null, 'active' => true, 'isObtainable' => true, 'obtainabilityCode' => null],
+            ['key' => 'func-list-unob', 'name' => 'Func Unobtainable', 'primary' => $water, 'secondary' => null, 'active' => true, 'isObtainable' => false, 'obtainabilityCode' => 'unobtainable'],
+            ['key' => 'func-list-inactive', 'name' => 'Hidden Func', 'primary' => $fire, 'secondary' => null, 'active' => false, 'isObtainable' => true, 'obtainabilityCode' => null],
+            ['key' => 'func-opp-b', 'name' => 'Opp B', 'primary' => $water, 'secondary' => null, 'active' => true, 'isObtainable' => true, 'obtainabilityCode' => null],
+            ['key' => 'func-opp-a', 'name' => 'Opp A', 'primary' => $fire, 'secondary' => null, 'active' => true, 'isObtainable' => true, 'obtainabilityCode' => null],
+            ['key' => 'func-opp-unob', 'name' => 'Opp Unobtainable', 'primary' => $water, 'secondary' => null, 'active' => true, 'isObtainable' => false, 'obtainabilityCode' => 'unobtainable'],
+            ['key' => 'func-cand-x', 'name' => 'Cand X', 'primary' => $fire, 'secondary' => null, 'active' => true, 'isObtainable' => true, 'obtainabilityCode' => null],
         ];
 
-        foreach ($rows as [$key, $name, $primary, $secondary, $active]) {
-            if ($em->getRepository(Pokemon::class)->findOneBy(['sourceKey' => $key]) !== null) {
-                continue;
+        foreach ($rows as $row) {
+            $p = $em->getRepository(Pokemon::class)->findOneBy(['sourceKey' => $row['key']]) ?? new Pokemon();
+            if ($p->getId() === null) {
+                $p->setSourceKey($row['key']);
+                $em->persist($p);
             }
-            $p = new Pokemon();
-            $p->setSourceKey($key);
-            $p->setName($name);
-            $p->setPrimaryType($primary);
-            $p->setSecondaryType($secondary);
+            $p->setName($row['name']);
+            $p->setPrimaryType($row['primary']);
+            $p->setSecondaryType($row['secondary']);
             // Pokechill star ratings 1..6 (must satisfy DB CHECK constraints).
             $p->setHp(3);
             $p->setAtk(4);
@@ -67,8 +69,9 @@ abstract class ApiWebTestCase extends WebTestCase
             $p->setSatk(4);
             $p->setSdef(3);
             $p->setSpe(3);
-            $p->setIsActive($active);
-            $em->persist($p);
+            $p->setIsActive($row['active']);
+            $p->setIsObtainable($row['isObtainable']);
+            $p->setObtainabilityCode($row['obtainabilityCode']);
         }
 
         $em->flush();

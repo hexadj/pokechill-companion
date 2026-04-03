@@ -192,7 +192,21 @@ final class PokemonReferenceImporter
             return true;
         }
 
-        return $entity->isActive() !== $pokemon->isActive;
+        if ($entity->isActive() !== $pokemon->isActive) {
+            return true;
+        }
+
+        if ($entity->isObtainable() !== $pokemon->isObtainable) {
+            return true;
+        }
+
+        $currentCode = $entity->getObtainabilityCode();
+        $nextCode = $pokemon->obtainabilityCode;
+        if ($currentCode !== $nextCode) {
+            return true;
+        }
+
+        return false;
     }
 
     private function applyImportedState(
@@ -211,6 +225,8 @@ final class PokemonReferenceImporter
         $entity->setPrimaryType($primaryType);
         $entity->setSecondaryType($secondaryType);
         $entity->setIsActive($pokemon->isActive);
+        $entity->setIsObtainable($pokemon->isObtainable);
+        $entity->setObtainabilityCode($pokemon->obtainabilityCode);
     }
 
     private function disableMissingActive(array $sourceKeys): int

@@ -30,7 +30,7 @@ final class PokechillPokemonExtractor
     public function extract(string $pokechillJs): array
     {
         // Ignore commented-out pokemon entries.
-        $pokechillJs = $this->stripJsCommentsPreserveLength($pokechillJs);
+        $pokechillJs = PokechillJsParsing::stripJsCommentsPreserveLength($pokechillJs);
 
         $matches = [];
         preg_match_all(
@@ -55,12 +55,12 @@ final class PokechillPokemonExtractor
 
             // Find the opening "{" of the object literal.
             // We search forward from the group start position for the next "{".
-            $openingBracePos = $this->findNextChar($pokechillJs, '{', $startPos);
+            $openingBracePos = PokechillJsParsing::findNextChar($pokechillJs, '{', $startPos);
             if ($openingBracePos === null) {
                 throw new RuntimeException(sprintf('Unable to locate object literal for "%s".', $sourceKey));
             }
 
-            $objectLiteral = $this->extractBalancedBlock($pokechillJs, $openingBracePos);
+            $objectLiteral = PokechillJsParsing::extractBalancedBlock($pokechillJs, $openingBracePos);
 
             $isHidden = $this->extractBoolProperty($objectLiteral, 'hidden');
             if ($isHidden && self::EXCLUDE_HIDDEN) {
@@ -122,101 +122,6 @@ final class PokechillPokemonExtractor
             'extractedPokemonCount' => \count($pokemons),
             'ignoredPokemonCount' => $ignoredPokemonCount,
         ];
-    }
-
-    /**
-     * Strips JS comments while preserving string length (by replacing comment chars with spaces).
-     * This keeps regex offsets and indices stable.
-     */
-    private function stripJsCommentsPreserveLength(string $input): string
-    {
-        $len = strlen($input);
-        $chars = str_split($input);
-
-        $inSingleQuote = false;
-        $inDoubleQuote = false;
-        $inTemplate = false;
-        $inLineComment = false;
-        $inBlockComment = false;
-
-        for ($i = 0; $i < $len; $i++) {
-            $ch = $chars[$i];
-            $next = $i + 1 < $len ? $chars[$i + 1] : '';
-
-            if ($inLineComment) {
-                if ($ch === "\n") {
-                    $inLineComment = false;
-                    continue;
-                }
-                $chars[$i] = ' ';
-                continue;
-            }
-
-            if ($inBlockComment) {
-                if ($ch === '*' && $next === '/') {
-                    $inBlockComment = false;
-                    $chars[$i] = ' ';
-                    $chars[$i + 1] = ' ';
-                    $i++;
-                    continue;
-                }
-                $chars[$i] = ' ';
-                continue;
-            }
-
-            if ($inSingleQuote) {
-                if ($ch === "'" && $i > 0 && $chars[$i - 1] !== '\\') {
-                    $inSingleQuote = false;
-                }
-                continue;
-            }
-
-            if ($inDoubleQuote) {
-                if ($ch === '"' && $i > 0 && $chars[$i - 1] !== '\\') {
-                    $inDoubleQuote = false;
-                }
-                continue;
-            }
-
-            if ($inTemplate) {
-                if ($ch === '`' && $i > 0 && $chars[$i - 1] !== '\\') {
-                    $inTemplate = false;
-                }
-                continue;
-            }
-
-            // Enter comments?
-            if ($ch === '/' && $next === '/') {
-                $inLineComment = true;
-                $chars[$i] = ' ';
-                $chars[$i + 1] = ' ';
-                $i++;
-                continue;
-            }
-            if ($ch === '/' && $next === '*') {
-                $inBlockComment = true;
-                $chars[$i] = ' ';
-                $chars[$i + 1] = ' ';
-                $i++;
-                continue;
-            }
-
-            // Enter strings?
-            if ($ch === "'" && !$inDoubleQuote && !$inTemplate) {
-                $inSingleQuote = true;
-                continue;
-            }
-            if ($ch === '"' && !$inSingleQuote && !$inTemplate) {
-                $inDoubleQuote = true;
-                continue;
-            }
-            if ($ch === '`' && !$inSingleQuote && !$inDoubleQuote) {
-                $inTemplate = true;
-                continue;
-            }
-        }
-
-        return implode('', $chars);
     }
 
     /**
@@ -300,12 +205,12 @@ final class PokechillPokemonExtractor
             }
         }
 
-        $openingBracePos = $this->findNextChar($objectLiteral, '{', $bstPos);
+        $openingBracePos = PokechillJsParsing::findNextChar($objectLiteral, '{', $bstPos);
         if ($openingBracePos === null) {
             return null;
         }
 
-        return $this->extractBalancedBlock($objectLiteral, $openingBracePos);
+        return PokechillJsParsing::extractBalancedBlock($objectLiteral, $openingBracePos);
     }
 
     /**
@@ -360,133 +265,4 @@ final class PokechillPokemonExtractor
         throw new RuntimeException(sprintf('Unsupported bst.%s expression "%s" for "%s".', $statKey, $expr, $sourceKey));
     }
 
-    private function findNextChar(string $input, string $char, int $fromPos): ?int
-    {
-        $pos = strpos($input, $char, $fromPos);
-        if ($pos === false) {
-            return null;
-        }
-
-        return $pos;
-    }
-
-    /**
-     * Extracts a balanced `{ ... }` block starting from an opening brace.
-     *
-     * It uses a light parser to ignore braces inside strings/comments.
-     */
-    private function extractBalancedBlock(string $input, int $openingBracePos): string
-    {
-        $len = strlen($input);
-        if ($openingBracePos < 0 || $openingBracePos >= $len || $input[$openingBracePos] !== '{') {
-            throw new RuntimeException('Internal error: expected opening brace.');
-        }
-
-        $depth = 0;
-        $inSingleQuote = false;
-        $inDoubleQuote = false;
-        $inTemplate = false;
-        $inLineComment = false;
-        $inBlockComment = false;
-
-        $i = $openingBracePos;
-        $start = $openingBracePos;
-
-        while ($i < $len) {
-            $ch = $input[$i];
-            $next = $i + 1 < $len ? $input[$i + 1] : '';
-
-            if ($inLineComment) {
-                if ($ch === "\n") {
-                    $inLineComment = false;
-                }
-                $i++;
-                continue;
-            }
-
-            if ($inBlockComment) {
-                if ($ch === '*' && $next === '/') {
-                    $inBlockComment = false;
-                    $i += 2;
-                    continue;
-                }
-                $i++;
-                continue;
-            }
-
-            if ($inSingleQuote) {
-                if ($ch === "'" && $i > 0 && $input[$i - 1] !== '\\') {
-                    $inSingleQuote = false;
-                }
-                $i++;
-                continue;
-            }
-
-            if ($inDoubleQuote) {
-                if ($ch === '"' && $i > 0 && $input[$i - 1] !== '\\') {
-                    $inDoubleQuote = false;
-                }
-                $i++;
-                continue;
-            }
-
-            if ($inTemplate) {
-                if ($ch === '`' && $i > 0 && $input[$i - 1] !== '\\') {
-                    $inTemplate = false;
-                }
-                $i++;
-                continue;
-            }
-
-            // Enter comment?
-            if (!$inSingleQuote && !$inDoubleQuote && !$inTemplate) {
-                if ($ch === '/' && $next === '/') {
-                    $inLineComment = true;
-                    $i += 2;
-                    continue;
-                }
-                if ($ch === '/' && $next === '*') {
-                    $inBlockComment = true;
-                    $i += 2;
-                    continue;
-                }
-            }
-
-            // Enter strings?
-            if ($ch === "'" && !$inDoubleQuote && !$inTemplate) {
-                $inSingleQuote = true;
-                $i++;
-                continue;
-            }
-            if ($ch === '"' && !$inSingleQuote && !$inTemplate) {
-                $inDoubleQuote = true;
-                $i++;
-                continue;
-            }
-            if ($ch === '`' && !$inSingleQuote && !$inDoubleQuote) {
-                $inTemplate = true;
-                $i++;
-                continue;
-            }
-
-            if ($ch === '{') {
-                $depth++;
-                $i++;
-                continue;
-            }
-
-            if ($ch === '}') {
-                $depth--;
-                $i++;
-                if ($depth === 0) {
-                    return substr($input, $start, $i - $start);
-                }
-                continue;
-            }
-
-            $i++;
-        }
-
-        throw new RuntimeException('Unable to extract balanced block.');
-    }
 }

@@ -22,7 +22,11 @@ final class ReferencePokemonApiTest extends ApiWebTestCase
         self::assertSame($sorted, $names);
 
         foreach ($data['items'] as $item) {
-            $this->assertInformativeStatsPayload($item);
+            $this->assertInformativeStatsPayload(
+                $item,
+                $item['sourceKey'] !== 'func-list-unob',
+                $item['sourceKey'] === 'func-list-unob' ? 'unobtainable' : null,
+            );
         }
     }
 
@@ -72,10 +76,28 @@ final class ReferencePokemonApiTest extends ApiWebTestCase
         self::assertResponseStatusCodeSame(422);
     }
 
+    public function testListIncludesObtainabilityForUnobtainablePokemon(): void
+    {
+        $this->client->request('GET', '/api/v1/reference/pokemon', [
+            'search' => 'Func Unob',
+            'limit' => 10,
+        ]);
+
+        self::assertResponseIsSuccessful();
+        $data = json_decode($this->client->getResponse()->getContent(), true, 512, JSON_THROW_ON_ERROR);
+        self::assertCount(1, $data['items']);
+        self::assertSame('func-list-unob', $data['items'][0]['sourceKey']);
+        $this->assertInformativeStatsPayload($data['items'][0], false, 'unobtainable');
+    }
+
     /**
      * @param array<string, mixed> $item
      */
-    private function assertInformativeStatsPayload(array $item): void
+    private function assertInformativeStatsPayload(
+        array $item,
+        bool $expectedIsObtainable = true,
+        ?string $expectedObtainabilityCode = null,
+    ): void
     {
         self::assertSame(3, $item['hp']);
         self::assertSame(4, $item['atk']);
@@ -85,5 +107,7 @@ final class ReferencePokemonApiTest extends ApiWebTestCase
         self::assertSame(3, $item['spe']);
         self::assertSame(20, $item['bstSum']);
         self::assertSame('S', $item['division']);
+        self::assertSame($expectedIsObtainable, $item['isObtainable']);
+        self::assertSame($expectedObtainabilityCode, $item['obtainabilityCode']);
     }
 }
