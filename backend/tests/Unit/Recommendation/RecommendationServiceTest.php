@@ -182,4 +182,57 @@ final class RecommendationServiceTest extends TestCase
         self::assertSame('m', $result2->recommendations[0]->sourceKey);
         self::assertSame('n', $result2->recommendations[1]->sourceKey);
     }
+
+    public function testExcludesUnobtainableCandidatesUnlessIncluded(): void
+    {
+        $fire = PokemonTestFactory::type('fire');
+        $water = PokemonTestFactory::type('water');
+
+        $opp = PokemonTestFactory::pokemon('opp', 'Opp', $water, null, 50, 100, 50, 100);
+        $unobtainableBest = PokemonTestFactory::pokemon(
+            'unob-best',
+            'Unob Best',
+            $fire,
+            null,
+            200,
+            50,
+            200,
+            50,
+            isObtainable: false,
+        );
+        $obtainableWeaker = PokemonTestFactory::pokemon('obt-weak', 'Obt Weak', $fire, null, 10, 50, 10, 50);
+
+        $repo = $this->makePokemonRepository(
+            ['opp' => $opp],
+            [$unobtainableBest, $obtainableWeaker],
+        );
+
+        $default = $this->service($repo)->recommend(new RecommendationQuery(['opp'], 10));
+        self::assertSame('obt-weak', $default->recommendations[0]->sourceKey);
+
+        $withUnob = $this->service($repo)->recommend(new RecommendationQuery(['opp'], 10, true));
+        self::assertSame('unob-best', $withUnob->recommendations[0]->sourceKey);
+    }
+
+    public function testFiltersCandidatesByDivisionCodes(): void
+    {
+        $fire = PokemonTestFactory::type('fire');
+        $water = PokemonTestFactory::type('water');
+
+        $opp = PokemonTestFactory::pokemon('opp', 'Opp', $water, null, 50, 100, 50, 100);
+        $divisionD = PokemonTestFactory::pokemon('div-d', 'Div D', $fire, null, 1, 1, 1, 1, 1, 1);
+        $divisionS = PokemonTestFactory::pokemon('div-s', 'Div S', $fire, null, 3, 3, 4, 4, 3, 3);
+
+        $repo = $this->makePokemonRepository(
+            ['opp' => $opp],
+            [$divisionD, $divisionS],
+        );
+
+        $allDivisions = $this->service($repo)->recommend(new RecommendationQuery(['opp'], 10));
+        self::assertSame('div-s', $allDivisions->recommendations[0]->sourceKey);
+
+        $onlyD = $this->service($repo)->recommend(new RecommendationQuery(['opp'], 10, false, ['D']));
+        self::assertCount(1, $onlyD->recommendations);
+        self::assertSame('div-d', $onlyD->recommendations[0]->sourceKey);
+    }
 }

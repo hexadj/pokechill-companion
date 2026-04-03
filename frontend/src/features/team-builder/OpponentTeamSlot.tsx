@@ -1,34 +1,12 @@
-import { useState } from 'react'
-
 import type { ReferencePokemonItem } from '../../shared/types/api'
-import { showdownGen5SpriteUrl } from '../../shared/pokemon/pokemonSpriteUrl'
+import { PokemonSprite } from '../../shared/pokemon/PokemonSprite'
 import { Button } from '../../shared/ui/Button'
-import { TypeBadge } from './TypeBadge'
+import { TypeBadge } from '../../shared/pokemon/TypeBadge'
 
 type OpponentTeamSlotProps = {
   index: number
   pokemon: ReferencePokemonItem | null
   onRemove: () => void
-}
-
-function PokemonSprite({ sourceKey, name }: { sourceKey: string; name: string }) {
-  const [failed, setFailed] = useState(false)
-  const url = showdownGen5SpriteUrl(sourceKey)
-
-  if (failed) {
-    return <div className="team-slot-sprite-fallback" aria-hidden />
-  }
-
-  return (
-    <img
-      src={url}
-      alt={name}
-      className="team-slot-sprite"
-      loading="lazy"
-      decoding="async"
-      onError={() => setFailed(true)}
-    />
-  )
 }
 
 export function OpponentTeamSlot({ index, pokemon, onRemove }: OpponentTeamSlotProps) {

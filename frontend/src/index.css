@@ -254,8 +254,7 @@ p {
   height: 104px;
   max-width: 100%;
   object-fit: contain;
-  image-rendering: pixelated;
-  image-rendering: crisp-edges;
+  /* Smooth scaling for PokéAPI official artwork; pixelated mode is for retro sprites only */
 }
 
 .team-slot-sprite-fallback {
@@ -285,6 +284,18 @@ p {
   padding: 0.15rem 0.4rem;
   border-radius: 4px;
   letter-spacing: 0.02em;
+}
+
+.type-badge-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  align-items: center;
+}
+
+.type-badge-row--inline {
+  display: inline-flex;
+  vertical-align: middle;
 }
 
 .team-slot-name {
@@ -375,10 +386,11 @@ p {
 }
 
 .search-result-types {
-  display: block;
-  font-size: 0.85rem;
-  color: var(--muted);
-  text-transform: lowercase;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  align-items: center;
+  margin-top: 0.2rem;
 }
 
 .link-button {
@@ -487,6 +499,75 @@ p {
   max-width: 220px;
 }
 
+.analysis-filters {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.checkbox-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  cursor: pointer;
+  color: var(--text);
+}
+
+.checkbox-row input {
+  margin-top: 0.2rem;
+}
+
+.analysis-divisions {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.analysis-divisions-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.analysis-divisions-actions {
+  display: flex;
+  gap: 0.65rem;
+}
+
+.link-button {
+  font: inherit;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--accent);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 0.12em;
+}
+
+.link-button:hover {
+  color: var(--accent-hover);
+}
+
+.link-button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.division-checkboxes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+}
+
+.division-checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  cursor: pointer;
+  font-size: 0.95rem;
+}
+
 .stack-top {
   margin-top: 0.85rem;
 }
@@ -525,9 +606,28 @@ p {
   background: color-mix(in srgb, var(--surface) 92%, var(--bg));
 }
 
+.recommendation-card-sprite-wrap {
+  flex-shrink: 0;
+}
+
+.recommendation-card-sprite {
+  width: 72px;
+  height: 72px;
+  max-width: 100%;
+  object-fit: contain;
+}
+
+.recommendation-card-sprite-fallback {
+  width: 72px;
+  height: 72px;
+  max-width: 100%;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--border) 55%, transparent);
+}
+
 .recommendation-card-header {
   display: grid;
-  grid-template-columns: auto 1fr auto;
+  grid-template-columns: auto auto 1fr auto;
   gap: 0.75rem;
   align-items: center;
 }

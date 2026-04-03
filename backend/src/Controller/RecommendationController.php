@@ -12,6 +12,7 @@ use App\Recommendation\Dto\RecommendationQuery;
 use App\Recommendation\Dto\RecommendationResult;
 use App\Recommendation\Dto\RecommendationView;
 use App\Recommendation\Service\RecommendationService;
+use App\ReferenceData\Import\PokechillDivisionCalculator;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
@@ -19,7 +20,7 @@ use Symfony\Component\Routing\Attribute\Route;
 #[Route('/api/v1')]
 final class RecommendationController
 {
-    private const ALLOWED_KEYS = ['opponentSourceKeys', 'limit'];
+    private const ALLOWED_KEYS = ['opponentSourceKeys', 'limit', 'includeNonObtainable', 'divisionCodes'];
 
     public function __construct(
         private readonly RecommendationService $recommendationService,
@@ -67,8 +68,10 @@ final class RecommendationController
 
         $opponentKeys = $this->normalizeOpponentSourceKeys($data['opponentSourceKeys']);
         $limit = $this->parseRecommendationLimit($data);
+        $includeNonObtainable = $this->parseIncludeNonObtainable($data);
+        $divisionCodes = $this->parseDivisionCodes($data);
 
-        $query = new RecommendationQuery($opponentKeys, $limit);
+        $query = new RecommendationQuery($opponentKeys, $limit, $includeNonObtainable, $divisionCodes);
         $result = $this->recommendationService->recommend($query);
 
         return new JsonResponse($this->resultToArray($result));
@@ -146,6 +149,85 @@ final class RecommendationController
         }
 
         return $limit;
+    }
+
+    /**
+     * @param array<string, mixed> $data
+     */
+    private function parseIncludeNonObtainable(array $data): bool
+    {
+        if (!\array_key_exists('includeNonObtainable', $data)) {
+            return false;
+        }
+
+        $raw = $data['includeNonObtainable'];
+        if (!\is_bool($raw)) {
+            throw ApiRequestValidationException::recommendationPayloadInvalid(
+                'Validation failed.',
+                ['includeNonObtainable' => ['includeNonObtainable must be a boolean.']],
+            );
+        }
+
+        return $raw;
+    }
+
+    /**
+     * @param array<string, mixed> $data
+     *
+     * @return list<string>|null
+     */
+    private function parseDivisionCodes(array $data): ?array
+    {
+        if (!\array_key_exists('divisionCodes', $data)) {
+            return null;
+        }
+
+        $raw = $data['divisionCodes'];
+        if (!\is_array($raw)) {
+            throw ApiRequestValidationException::recommendationPayloadInvalid(
+                'Validation failed.',
+                ['divisionCodes' => ['divisionCodes must be an array.']],
+            );
+        }
+
+        if ($raw === []) {
+            throw ApiRequestValidationException::recommendationPayloadInvalid(
+                'Validation failed.',
+                ['divisionCodes' => ['divisionCodes must contain at least one division code.']],
+            );
+        }
+
+        $validSet = array_flip(PokechillDivisionCalculator::DIVISION_CODES);
+        $out = [];
+        $seen = [];
+
+        foreach ($raw as $idx => $item) {
+            if (!\is_string($item)) {
+                throw ApiRequestValidationException::recommendationPayloadInvalid(
+                    'Validation failed.',
+                    ['divisionCodes' => [sprintf('Entry at index %s must be a non-empty string.', $idx)]],
+                );
+            }
+            $trimmed = trim($item);
+            if ($trimmed === '') {
+                throw ApiRequestValidationException::recommendationPayloadInvalid(
+                    'Validation failed.',
+                    ['divisionCodes' => [sprintf('Entry at index %s must be a non-empty string.', $idx)]],
+                );
+            }
+            if (!isset($validSet[$trimmed])) {
+                throw ApiRequestValidationException::recommendationPayloadInvalid(
+                    'Validation failed.',
+                    ['divisionCodes' => [sprintf('Unknown division code: %s.', $trimmed)]],
+                );
+            }
+            if (!isset($seen[$trimmed])) {
+                $seen[$trimmed] = true;
+                $out[] = $trimmed;
+            }
+        }
+
+        return $out;
     }
 
     /**

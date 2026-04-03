@@ -64,6 +64,7 @@ final class RecommendationService
 
         $matrix = $this->typeEffectivenessRepository->getMatrix();
         $candidates = $this->pokemonRepository->findAllActive();
+        $candidates = $this->filterCandidates($query, $candidates);
 
         $rows = [];
         foreach ($candidates as $candidate) {
@@ -130,6 +131,43 @@ final class RecommendationService
             opponentTeam: $opponentTeam,
             recommendations: $recommendations,
         );
+    }
+
+    /**
+     * @param Pokemon[] $candidates
+     *
+     * @return Pokemon[]
+     */
+    private function filterCandidates(RecommendationQuery $query, array $candidates): array
+    {
+        $allowedDivisions = null;
+        if ($query->divisionCodes !== null) {
+            $allowedDivisions = array_flip($query->divisionCodes);
+        }
+
+        $out = [];
+        foreach ($candidates as $candidate) {
+            if (!$query->includeNonObtainable && !$candidate->isObtainable()) {
+                continue;
+            }
+            if ($allowedDivisions !== null) {
+                $bst = $this->pokechillDivisionCalculator->bstSum(
+                    $candidate->getHp(),
+                    $candidate->getAtk(),
+                    $candidate->getDef(),
+                    $candidate->getSatk(),
+                    $candidate->getSdef(),
+                    $candidate->getSpe(),
+                );
+                $division = $this->pokechillDivisionCalculator->divisionFromBstSum($bst);
+                if (!isset($allowedDivisions[$division])) {
+                    continue;
+                }
+            }
+            $out[] = $candidate;
+        }
+
+        return $out;
     }
 
     private function validateQuery(RecommendationQuery $query): void

@@ -1,4 +1,4 @@
-import { formatTypeLabel, getTypeStyle } from '../../shared/pokemon/typeColors'
+import { formatTypeLabel, getTypeStyle } from './typeColors'
 
 type TypeBadgeProps = {
   typeCode: string

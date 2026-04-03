@@ -20,6 +20,10 @@ export type ReferencePokemonItem = {
 export type RecommendationRequest = {
   opponentSourceKeys: string[]
   limit?: number
+  /** Default false: unobtainable Pokémon are excluded from candidate recommendations. */
+  includeNonObtainable?: boolean
+  /** Omit to allow all divisions; otherwise restrict candidates to these codes (non-empty). */
+  divisionCodes?: string[]
 }
 
 export type OpponentPokemonView = ReferencePokemonItem

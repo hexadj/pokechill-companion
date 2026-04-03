@@ -11,6 +11,13 @@ namespace App\ReferenceData\Import;
  */
 final class PokechillDivisionCalculator
 {
+    /**
+     * Canonical order for validation and UI; matches {@see divisionFromBstSum()} outputs.
+     *
+     * @var list<'D'|'C'|'B'|'A'|'S'|'SS'|'SSS'>
+     */
+    public const DIVISION_CODES = ['D', 'C', 'B', 'A', 'S', 'SS', 'SSS'];
+
     public function bstSum(int $hp, int $atk, int $def, int $satk, int $sdef, int $spe): int
     {
         return $hp + $atk + $def + $satk + $sdef + $spe;

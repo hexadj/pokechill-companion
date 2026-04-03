@@ -112,6 +112,118 @@ final class RecommendationApiTest extends ApiWebTestCase
         self::assertResponseStatusCodeSame(422);
     }
 
+    public function testValidPayloadWithOptionalFiltersReturns200(): void
+    {
+        $this->client->request(
+            'POST',
+            '/api/v1/recommendations',
+            [],
+            [],
+            ['CONTENT_TYPE' => 'application/json'],
+            json_encode([
+                'opponentSourceKeys' => ['func-opp-a'],
+                'limit' => 3,
+                'includeNonObtainable' => true,
+                'divisionCodes' => ['S', 'SS', 'SSS', 'D'],
+            ], JSON_THROW_ON_ERROR),
+        );
+
+        self::assertResponseIsSuccessful();
+        $data = json_decode($this->client->getResponse()->getContent(), true, 512, JSON_THROW_ON_ERROR);
+        self::assertArrayHasKey('recommendations', $data);
+    }
+
+    public function testEmptyDivisionCodesReturns422(): void
+    {
+        $this->client->request(
+            'POST',
+            '/api/v1/recommendations',
+            [],
+            [],
+            ['CONTENT_TYPE' => 'application/json'],
+            json_encode([
+                'opponentSourceKeys' => ['func-opp-a'],
+                'divisionCodes' => [],
+            ], JSON_THROW_ON_ERROR),
+        );
+
+        $data = $this->assertProblemJsonResponse(422, '/errors/validation', 'Validation failed');
+        self::assertArrayHasKey('divisionCodes', $data['errors'] ?? []);
+    }
+
+    public function testInvalidDivisionCodeReturns422(): void
+    {
+        $this->client->request(
+            'POST',
+            '/api/v1/recommendations',
+            [],
+            [],
+            ['CONTENT_TYPE' => 'application/json'],
+            json_encode([
+                'opponentSourceKeys' => ['func-opp-a'],
+                'divisionCodes' => ['X'],
+            ], JSON_THROW_ON_ERROR),
+        );
+
+        $data = $this->assertProblemJsonResponse(422, '/errors/validation', 'Validation failed');
+        self::assertArrayHasKey('divisionCodes', $data['errors'] ?? []);
+    }
+
+    public function testIncludeNonObtainableMustBeBooleanReturns422(): void
+    {
+        $this->client->request(
+            'POST',
+            '/api/v1/recommendations',
+            [],
+            [],
+            ['CONTENT_TYPE' => 'application/json'],
+            json_encode([
+                'opponentSourceKeys' => ['func-opp-a'],
+                'includeNonObtainable' => 'yes',
+            ], JSON_THROW_ON_ERROR),
+        );
+
+        $data = $this->assertProblemJsonResponse(422, '/errors/validation', 'Validation failed');
+        self::assertArrayHasKey('includeNonObtainable', $data['errors'] ?? []);
+    }
+
+    public function testUnobtainableCandidateExcludedByDefaultButRankedFirstWhenIncluded(): void
+    {
+        // Opponent must be water so fire-type candidates are favoured over water-type fixtures (e.g. func-list-a).
+        $this->client->request(
+            'POST',
+            '/api/v1/recommendations',
+            [],
+            [],
+            ['CONTENT_TYPE' => 'application/json'],
+            json_encode([
+                'opponentSourceKeys' => ['func-opp-b'],
+                'limit' => 1,
+            ], JSON_THROW_ON_ERROR),
+        );
+
+        self::assertResponseIsSuccessful();
+        $data = json_decode($this->client->getResponse()->getContent(), true, 512, JSON_THROW_ON_ERROR);
+        self::assertNotSame('func-cand-unob-best', $data['recommendations'][0]['sourceKey']);
+
+        $this->client->request(
+            'POST',
+            '/api/v1/recommendations',
+            [],
+            [],
+            ['CONTENT_TYPE' => 'application/json'],
+            json_encode([
+                'opponentSourceKeys' => ['func-opp-b'],
+                'limit' => 1,
+                'includeNonObtainable' => true,
+            ], JSON_THROW_ON_ERROR),
+        );
+
+        self::assertResponseIsSuccessful();
+        $data2 = json_decode($this->client->getResponse()->getContent(), true, 512, JSON_THROW_ON_ERROR);
+        self::assertSame('func-cand-unob-best', $data2['recommendations'][0]['sourceKey']);
+    }
+
     /**
      * @param array<string, mixed> $item
      */

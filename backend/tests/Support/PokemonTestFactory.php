@@ -30,6 +30,7 @@ final class PokemonTestFactory
         int $hp = 50,
         int $spe = 50,
         bool $active = true,
+        bool $isObtainable = true,
     ): Pokemon {
         $p = new Pokemon();
         $p->setSourceKey($sourceKey);
@@ -43,6 +44,7 @@ final class PokemonTestFactory
         $p->setSdef($sdef);
         $p->setSpe($spe);
         $p->setIsActive($active);
+        $p->setIsObtainable($isObtainable);
 
         return $p;
     }

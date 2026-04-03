@@ -51,6 +51,7 @@ abstract class ApiWebTestCase extends WebTestCase
             ['key' => 'func-opp-a', 'name' => 'Opp A', 'primary' => $fire, 'secondary' => null, 'active' => true, 'isObtainable' => true, 'obtainabilityCode' => null],
             ['key' => 'func-opp-unob', 'name' => 'Opp Unobtainable', 'primary' => $water, 'secondary' => null, 'active' => true, 'isObtainable' => false, 'obtainabilityCode' => 'unobtainable'],
             ['key' => 'func-cand-x', 'name' => 'Cand X', 'primary' => $fire, 'secondary' => null, 'active' => true, 'isObtainable' => true, 'obtainabilityCode' => null],
+            ['key' => 'func-cand-unob-best', 'name' => 'Cand Unob Best', 'primary' => $fire, 'secondary' => null, 'active' => true, 'isObtainable' => false, 'obtainabilityCode' => 'unobtainable'],
         ];
 
         foreach ($rows as $row) {
@@ -63,12 +64,21 @@ abstract class ApiWebTestCase extends WebTestCase
             $p->setPrimaryType($row['primary']);
             $p->setSecondaryType($row['secondary']);
             // Pokechill star ratings 1..6 (must satisfy DB CHECK constraints).
-            $p->setHp(3);
-            $p->setAtk(4);
-            $p->setDef(3);
-            $p->setSatk(4);
-            $p->setSdef(3);
-            $p->setSpe(3);
+            if ($row['key'] === 'func-cand-unob-best') {
+                $p->setHp(6);
+                $p->setAtk(6);
+                $p->setDef(6);
+                $p->setSatk(6);
+                $p->setSdef(6);
+                $p->setSpe(6);
+            } else {
+                $p->setHp(3);
+                $p->setAtk(4);
+                $p->setDef(3);
+                $p->setSatk(4);
+                $p->setSdef(3);
+                $p->setSpe(3);
+            }
             $p->setIsActive($row['active']);
             $p->setIsObtainable($row['isObtainable']);
             $p->setObtainabilityCode($row['obtainabilityCode']);

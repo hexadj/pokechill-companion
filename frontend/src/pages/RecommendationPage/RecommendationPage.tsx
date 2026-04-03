@@ -4,7 +4,9 @@ import { OpponentTeamBuilder } from '../../features/team-builder/OpponentTeamBui
 import { RecommendationList } from '../../features/recommendations/RecommendationList'
 import { useRecommendationsMutation } from '../../features/recommendations/useRecommendationsMutation'
 import { getUserFacingApiMessage } from '../../shared/api/client'
-import type { ReferencePokemonItem } from '../../shared/types/api'
+import { POKECHILL_DIVISION_CODES } from '../../shared/constants/pokechillDivisions'
+import { TypeBadge } from '../../shared/pokemon/TypeBadge'
+import type { ReferencePokemonItem, RecommendationRequest } from '../../shared/types/api'
 import { Button } from '../../shared/ui/Button'
 import { Card } from '../../shared/ui/Card'
 import { ErrorState } from '../../shared/ui/ErrorState'
@@ -24,9 +26,20 @@ function clampLimit(raw: string): number | null {
   return n
 }
 
+function divisionPayload(selected: ReadonlySet<string>): string[] | undefined {
+  if (selected.size === POKECHILL_DIVISION_CODES.length) {
+    return undefined
+  }
+  return POKECHILL_DIVISION_CODES.filter((code) => selected.has(code))
+}
+
 export function RecommendationPage() {
   const [team, setTeam] = useState<ReferencePokemonItem[]>([])
   const [limitInput, setLimitInput] = useState(String(DEFAULT_LIMIT))
+  const [includeNonObtainable, setIncludeNonObtainable] = useState(false)
+  const [selectedDivisionCodes, setSelectedDivisionCodes] = useState(
+    () => new Set<string>(POKECHILL_DIVISION_CODES),
+  )
   const mutation = useRecommendationsMutation()
 
   const limit = useMemo(() => {
@@ -36,18 +49,52 @@ export function RecommendationPage() {
 
   const limitValid = clampLimit(limitInput.trim()) !== null
 
+  const toggleDivision = useCallback((code: string) => {
+    setSelectedDivisionCodes((prev) => {
+      const next = new Set(prev)
+      if (next.has(code)) {
+        next.delete(code)
+      } else {
+        next.add(code)
+      }
+      return next
+    })
+  }, [])
+
+  const selectAllDivisions = useCallback(() => {
+    setSelectedDivisionCodes(new Set(POKECHILL_DIVISION_CODES))
+  }, [])
+
+  const clearDivisions = useCallback(() => {
+    setSelectedDivisionCodes(new Set())
+  }, [])
+
   const runAnalysis = useCallback(() => {
     if (team.length === 0) {
       return
     }
-    mutation.mutate({
+    const divisionCodes = divisionPayload(selectedDivisionCodes)
+    const body: RecommendationRequest = {
       opponentSourceKeys: team.map((p) => p.sourceKey),
       limit,
-    })
-  }, [limit, mutation, team])
+    }
+    if (includeNonObtainable) {
+      body.includeNonObtainable = true
+    }
+    if (divisionCodes !== undefined) {
+      body.divisionCodes = divisionCodes
+    }
+    mutation.mutate(body)
+  }, [includeNonObtainable, limit, mutation, selectedDivisionCodes, team])
 
   const last = mutation.data
-  const canAnalyze = team.length >= 1 && team.length <= 6 && limitValid && !mutation.isPending
+  const divisionsValid = selectedDivisionCodes.size >= 1
+  const canAnalyze =
+    team.length >= 1 &&
+    team.length <= 6 &&
+    limitValid &&
+    divisionsValid &&
+    !mutation.isPending
 
   return (
     <div className="page">
@@ -106,6 +153,58 @@ export function RecommendationPage() {
             </Button>
           </div>
         </div>
+        <div className="analysis-filters stack-top">
+          <label className="checkbox-row">
+            <input
+              type="checkbox"
+              checked={includeNonObtainable}
+              onChange={(e) => setIncludeNonObtainable(e.target.checked)}
+              disabled={mutation.isPending}
+            />
+            <span>Include unobtainable Pokémon in recommendations</span>
+          </label>
+          <div className="analysis-divisions">
+            <div className="analysis-divisions-header">
+              <span className="label">Candidate divisions</span>
+              <div className="analysis-divisions-actions">
+                <button
+                  type="button"
+                  className="link-button"
+                  onClick={selectAllDivisions}
+                  disabled={mutation.isPending}
+                >
+                  Select all
+                </button>
+                <button
+                  type="button"
+                  className="link-button"
+                  onClick={clearDivisions}
+                  disabled={mutation.isPending}
+                >
+                  Clear
+                </button>
+              </div>
+            </div>
+            <div className="division-checkboxes" role="group" aria-label="Pokechill divisions for candidates">
+              {POKECHILL_DIVISION_CODES.map((code) => (
+                <label key={code} className="division-checkbox">
+                  <input
+                    type="checkbox"
+                    checked={selectedDivisionCodes.has(code)}
+                    onChange={() => toggleDivision(code)}
+                    disabled={mutation.isPending}
+                  />
+                  <span>{code}</span>
+                </label>
+              ))}
+            </div>
+            {!divisionsValid ? (
+              <p className="hint error-text">Select at least one division.</p>
+            ) : (
+              <p className="hint muted">By default all divisions are allowed; narrow the pool with the toggles above.</p>
+            )}
+          </div>
+        </div>
         {mutation.isError ? (
           <div className="stack-top">
             <ErrorState message={getUserFacingApiMessage(mutation.error)} />
@@ -127,9 +226,9 @@ export function RecommendationPage() {
                   {last.opponentTeam.map((p, idx) => (
                     <li key={`${p.sourceKey}-${idx}`}>
                       {p.name}{' '}
-                      <span className="muted">
-                        ({p.primaryTypeCode}
-                        {p.secondaryTypeCode ? ` · ${p.secondaryTypeCode}` : ''})
+                      <span className="type-badge-row type-badge-row--inline" aria-label="Types">
+                        <TypeBadge typeCode={p.primaryTypeCode} />
+                        {p.secondaryTypeCode ? <TypeBadge typeCode={p.secondaryTypeCode} /> : null}
                       </span>
                     </li>
                   ))}

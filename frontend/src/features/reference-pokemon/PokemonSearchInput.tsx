@@ -6,6 +6,7 @@ import { useDebouncedValue } from '../../shared/lib/useDebouncedValue'
 import { ErrorState } from '../../shared/ui/ErrorState'
 import { Input } from '../../shared/ui/Input'
 import { Loader } from '../../shared/ui/Loader'
+import { TypeBadge } from '../../shared/pokemon/TypeBadge'
 import { useReferencePokemon } from './useReferencePokemon'
 
 const DEBOUNCE_MS = 280
@@ -98,8 +99,8 @@ export function PokemonSearchInput({ disabled, teamSize, onPick }: PokemonSearch
                   >
                     <span className="search-result-name">{p.name}</span>
                     <span className="search-result-types">
-                      {p.primaryTypeCode}
-                      {p.secondaryTypeCode ? ` · ${p.secondaryTypeCode}` : ''}
+                      <TypeBadge typeCode={p.primaryTypeCode} />
+                      {p.secondaryTypeCode ? <TypeBadge typeCode={p.secondaryTypeCode} /> : null}
                     </span>
                   </button>
                 ))
