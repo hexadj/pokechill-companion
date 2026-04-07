@@ -72,10 +72,9 @@ export function RecommendationCard({ entry, rank }: RecommendationCardProps) {
             <dd className="stat-stars">{renderStarsNode(entry.spe)}</dd>
           </div>
         </dl>
-        <div className="recommendation-score">{entry.score.toFixed(2)}</div>
       </header>
       <details className="recommendation-details">
-        <summary>Matchup details</summary>
+        <summary>Matchup score : {entry.score.toFixed(2)}</summary>
         <RecommendationMatchupTable matchups={entry.matchups} />
       </details>
     </article>

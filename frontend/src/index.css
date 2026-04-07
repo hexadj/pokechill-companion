@@ -725,7 +725,7 @@ p {
 
 .recommendation-card-header {
   display: grid;
-  grid-template-columns: auto auto minmax(0, 1fr) auto auto;
+  grid-template-columns: auto auto minmax(0, 1fr) auto;
   gap: 0.75rem;
   align-items: center;
 }
@@ -736,9 +736,14 @@ p {
   color: var(--muted);
 }
 
+.recommendation-title {
+  min-width: 0;
+}
+
 .recommendation-name {
   font-weight: 700;
   color: var(--text-h);
+  word-break: break-word;
 }
 
 .recommendation-meta {
@@ -748,13 +753,6 @@ p {
 .recommendation-division {
   margin-top: 0.2rem;
   font-size: 0.74rem;
-}
-
-.recommendation-score {
-  color: var(--text-h);
-  font: inherit;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
 }
 
 .recommendation-stats {
@@ -804,6 +802,36 @@ p {
   color: var(--accent);
 }
 
+@media (max-width: 720px) {
+  .recommendation-card-header {
+    grid-template-columns: auto auto minmax(0, 1fr);
+    grid-template-areas:
+      'rank sprite title'
+      'stats stats stats';
+    align-items: start;
+  }
+
+  .recommendation-card-sprite-wrap {
+    grid-area: sprite;
+    justify-self: start;
+  }
+
+  .recommendation-rank {
+    grid-area: rank;
+    align-self: center;
+  }
+
+  .recommendation-title {
+    grid-area: title;
+    align-self: center;
+  }
+
+  .recommendation-stats {
+    grid-area: stats;
+    width: 100%;
+  }
+}
+
 .table-scroll {
   overflow: auto;
   margin-top: 0.35rem;
@@ -829,4 +857,62 @@ p {
   font-size: 0.78rem;
   text-transform: uppercase;
   letter-spacing: 0.04em;
+}
+
+.matchup-cards {
+  display: none;
+}
+
+.matchup-card {
+  border: 1px solid color-mix(in srgb, var(--border) 88%, transparent);
+  border-radius: 12px;
+  padding: 0.7rem 0.8rem;
+  background: color-mix(in srgb, var(--surface) 94%, var(--bg));
+}
+
+.matchup-card-opponent {
+  font-weight: 700;
+  color: var(--text-h);
+  word-break: break-word;
+}
+
+.matchup-card-metrics {
+  margin: 0.65rem 0 0;
+  display: grid;
+  gap: 0.45rem;
+}
+
+.matchup-card-row {
+  display: grid;
+  grid-template-columns: minmax(0, 110px) minmax(0, 1fr);
+  gap: 0.65rem;
+  align-items: start;
+}
+
+.matchup-card-row dt {
+  margin: 0;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.matchup-card-row dd {
+  margin: 0;
+  min-width: 0;
+  color: var(--text-h);
+  word-break: break-word;
+}
+
+@media (max-width: 720px) {
+  .matchup-table-desktop {
+    display: none;
+  }
+
+  .matchup-cards {
+    display: grid;
+    gap: 0.65rem;
+    margin-top: 0.35rem;
+  }
 }
