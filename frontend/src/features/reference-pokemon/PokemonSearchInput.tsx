@@ -23,7 +23,7 @@ export function PokemonSearchInput({ disabled, teamSize, onPick }: PokemonSearch
   const debounced = useDebouncedValue(query, DEBOUNCE_MS)
   const { data, isPending, isError, error, refetch } = useReferencePokemon(debounced)
   const [open, setOpen] = useState(false)
-  const blurTimeout = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const blurTimeout = useRef<number | null>(null)
 
   const canAdd = teamSize < 6
   const items = data?.items ?? []

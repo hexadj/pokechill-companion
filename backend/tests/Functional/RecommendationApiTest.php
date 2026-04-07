@@ -6,6 +6,22 @@ namespace App\Tests\Functional;
 
 final class RecommendationApiTest extends ApiWebTestCase
 {
+    public function testUnknownApiRouteReturns404ProblemJson(): void
+    {
+        $this->client->request('GET', '/api/v1/unknown');
+
+        $data = $this->assertProblemJsonResponse(404, '/errors/server-error', 'Not Found');
+        self::assertSame('The requested API resource was not found.', $data['detail']);
+    }
+
+    public function testWrongMethodReturns405ProblemJson(): void
+    {
+        $this->client->request('GET', '/api/v1/recommendations');
+
+        $data = $this->assertProblemJsonResponse(405, '/errors/server-error', 'Method Not Allowed');
+        self::assertSame('The HTTP method is not allowed for this API resource.', $data['detail']);
+    }
+
     public function testValidPayloadReturns200AndPreservesOpponentOrder(): void
     {
         $this->client->request(

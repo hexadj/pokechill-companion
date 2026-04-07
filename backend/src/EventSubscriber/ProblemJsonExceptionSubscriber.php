@@ -10,7 +10,9 @@ use App\Error\ProblemJsonResponseFactory;
 use App\Recommendation\Exception\InvalidRecommendationQueryException;
 use App\Recommendation\Exception\OpponentPokemonNotFoundException;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;
+use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 use Symfony\Component\HttpKernel\KernelEvents;
 
 /**
@@ -73,6 +75,27 @@ final class ProblemJsonExceptionSubscriber implements EventSubscriberInterface
                 'One or more opponentSourceKeys are invalid.',
                 ProblemJsonResponseFactory::TYPE_VALIDATION,
                 ['opponentSourceKeys' => [$detail]],
+            ));
+
+            return;
+        }
+
+        if ($throwable instanceof HttpExceptionInterface && str_starts_with($event->getRequest()->getPathInfo(), '/api/v1')) {
+            $status = $throwable->getStatusCode();
+            $title = Response::$statusTexts[$status] ?? 'HTTP Error';
+            $detail = match ($status) {
+                404 => 'The requested API resource was not found.',
+                405 => 'The HTTP method is not allowed for this API resource.',
+                default => $status >= 400 && $status < 500
+                    ? 'The request could not be processed.'
+                    : 'An unexpected error occurred.',
+            };
+
+            $event->setResponse(ProblemJsonResponseFactory::create(
+                $status,
+                $title,
+                $detail,
+                headers: $throwable->getHeaders(),
             ));
 
             return;

@@ -26,6 +26,7 @@ final class ProblemJsonResponseFactory
         string $detail,
         ?string $type = null,
         ?array $errors = null,
+        array $headers = [],
     ): JsonResponse {
         $body = [
             'type' => $type ?? self::defaultTypeForStatus($status),
@@ -37,9 +38,9 @@ final class ProblemJsonResponseFactory
             $body['errors'] = $errors;
         }
 
-        return new JsonResponse($body, $status, [
+        return new JsonResponse($body, $status, array_merge($headers, [
             'Content-Type' => 'application/problem+json',
-        ]);
+        ]));
     }
 
     private static function defaultTypeForStatus(int $status): string

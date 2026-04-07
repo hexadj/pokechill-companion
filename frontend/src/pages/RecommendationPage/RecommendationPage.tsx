@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { OpponentTeamBuilder } from '../../features/team-builder/OpponentTeamBuilder'
 import { RecommendationList } from '../../features/recommendations/RecommendationList'
@@ -6,7 +6,11 @@ import { useRecommendationsMutation } from '../../features/recommendations/useRe
 import { getUserFacingApiMessage } from '../../shared/api/client'
 import { POKECHILL_DIVISION_CODES } from '../../shared/constants/pokechillDivisions'
 import { TypeBadge } from '../../shared/pokemon/TypeBadge'
-import type { ReferencePokemonItem, RecommendationRequest } from '../../shared/types/api'
+import type {
+  RecommendationResponse,
+  ReferencePokemonItem,
+  RecommendationRequest,
+} from '../../shared/types/api'
 import { Button } from '../../shared/ui/Button'
 import { Card } from '../../shared/ui/Card'
 import { ErrorState } from '../../shared/ui/ErrorState'
@@ -33,6 +37,49 @@ function divisionPayload(selected: ReadonlySet<string>): string[] | undefined {
   return POKECHILL_DIVISION_CODES.filter((code) => selected.has(code))
 }
 
+type BuildRecommendationRequestArgs = {
+  team: ReferencePokemonItem[]
+  limit: number
+  limitValid: boolean
+  includeNonObtainable: boolean
+  selectedDivisionCodes: ReadonlySet<string>
+}
+
+function buildRecommendationRequest({
+  team,
+  limit,
+  limitValid,
+  includeNonObtainable,
+  selectedDivisionCodes,
+}: BuildRecommendationRequestArgs): RecommendationRequest | null {
+  if (team.length < 1 || team.length > 6 || !limitValid || selectedDivisionCodes.size < 1) {
+    return null
+  }
+
+  const divisionCodes = divisionPayload(selectedDivisionCodes)
+  const body: RecommendationRequest = {
+    opponentSourceKeys: team.map((p) => p.sourceKey),
+    limit,
+  }
+
+  if (includeNonObtainable) {
+    body.includeNonObtainable = true
+  }
+  if (divisionCodes !== undefined) {
+    body.divisionCodes = divisionCodes
+  }
+
+  return body
+}
+
+function serializeRecommendationRequest(request: RecommendationRequest | null): string | null {
+  if (request === null) {
+    return null
+  }
+
+  return JSON.stringify(request)
+}
+
 export function RecommendationPage() {
   const [team, setTeam] = useState<ReferencePokemonItem[]>([])
   const [limitInput, setLimitInput] = useState(String(DEFAULT_LIMIT))
@@ -40,7 +87,12 @@ export function RecommendationPage() {
   const [selectedDivisionCodes, setSelectedDivisionCodes] = useState(
     () => new Set<string>(POKECHILL_DIVISION_CODES),
   )
+  const [lastRunRequestKey, setLastRunRequestKey] = useState<string | null>(null)
+  const [hasRunOnce, setHasRunOnce] = useState(false)
+  const [visibleResult, setVisibleResult] = useState<RecommendationResponse | null>(null)
+  const [visibleError, setVisibleError] = useState<unknown>(null)
   const mutation = useRecommendationsMutation()
+  const { isPending, mutate, reset } = mutation
 
   const limit = useMemo(() => {
     const parsed = clampLimit(limitInput.trim())
@@ -48,6 +100,22 @@ export function RecommendationPage() {
   }, [limitInput])
 
   const limitValid = clampLimit(limitInput.trim()) !== null
+  const draftRequest = useMemo(
+    () =>
+      buildRecommendationRequest({
+        team,
+        limit,
+        limitValid,
+        includeNonObtainable,
+        selectedDivisionCodes,
+      }),
+    [includeNonObtainable, limit, limitValid, selectedDivisionCodes, team],
+  )
+  const draftRequestKey = useMemo(
+    () => serializeRecommendationRequest(draftRequest),
+    [draftRequest],
+  )
+  const latestDraftRequestKeyRef = useRef<string | null>(draftRequestKey)
 
   const toggleDivision = useCallback((code: string) => {
     setSelectedDivisionCodes((prev) => {
@@ -69,32 +137,68 @@ export function RecommendationPage() {
     setSelectedDivisionCodes(new Set())
   }, [])
 
-  const runAnalysis = useCallback(() => {
-    if (team.length === 0) {
+  useEffect(() => {
+    latestDraftRequestKeyRef.current = draftRequestKey
+  }, [draftRequestKey])
+
+  const isAnalysisStale =
+    hasRunOnce && lastRunRequestKey !== null && draftRequestKey !== lastRunRequestKey
+
+  useEffect(() => {
+    if (!isAnalysisStale) {
       return
     }
-    const divisionCodes = divisionPayload(selectedDivisionCodes)
-    const body: RecommendationRequest = {
-      opponentSourceKeys: team.map((p) => p.sourceKey),
-      limit,
-    }
-    if (includeNonObtainable) {
-      body.includeNonObtainable = true
-    }
-    if (divisionCodes !== undefined) {
-      body.divisionCodes = divisionCodes
-    }
-    mutation.mutate(body)
-  }, [includeNonObtainable, limit, mutation, selectedDivisionCodes, team])
 
-  const last = mutation.data
+    reset()
+  }, [isAnalysisStale, reset])
+
+  const activeResult = isAnalysisStale ? null : visibleResult
+  const activeError = isAnalysisStale ? null : visibleError
+
+  const runAnalysis = useCallback(() => {
+    if (draftRequest === null || draftRequestKey === null) {
+      return
+    }
+
+    setLastRunRequestKey(draftRequestKey)
+    setHasRunOnce(true)
+    setVisibleResult(null)
+    setVisibleError(null)
+    mutate(draftRequest, {
+      onSuccess: (data) => {
+        if (latestDraftRequestKeyRef.current !== draftRequestKey) {
+          return
+        }
+
+        setVisibleResult(data)
+        setVisibleError(null)
+      },
+      onError: (error) => {
+        if (latestDraftRequestKeyRef.current !== draftRequestKey) {
+          return
+        }
+
+        setVisibleResult(null)
+        setVisibleError(error)
+      },
+    })
+  }, [draftRequest, draftRequestKey, mutate])
+
   const divisionsValid = selectedDivisionCodes.size >= 1
   const canAnalyze =
-    team.length >= 1 &&
-    team.length <= 6 &&
-    limitValid &&
-    divisionsValid &&
-    !mutation.isPending
+    draftRequest !== null && divisionsValid && !isPending
+  const recommendationListState = useMemo(() => {
+    if (isAnalysisStale) {
+      return 'stale' as const
+    }
+    if (activeError !== null) {
+      return 'error' as const
+    }
+    if (activeResult !== null) {
+      return activeResult.recommendations.length === 0 ? ('empty' as const) : ('ready' as const)
+    }
+    return 'initial' as const
+  }, [activeError, activeResult, isAnalysisStale])
 
   return (
     <div className="page">
@@ -122,7 +226,7 @@ export function RecommendationPage() {
       </header>
 
       <Card title="Opponent team" className="card-opponent-team">
-        <OpponentTeamBuilder team={team} disabled={mutation.isPending} onChange={setTeam} />
+        <OpponentTeamBuilder team={team} disabled={isPending} onChange={setTeam} />
       </Card>
 
       <Card title="Analysis">
@@ -136,7 +240,7 @@ export function RecommendationPage() {
               value={limitInput}
               onChange={setLimitInput}
               placeholder="20"
-              disabled={mutation.isPending}
+              disabled={isPending}
               aria-label="Maximum number of recommendations"
             />
             {!limitValid ? (
@@ -149,7 +253,7 @@ export function RecommendationPage() {
               disabled={!canAnalyze}
               onClick={() => runAnalysis()}
             >
-              {mutation.isPending ? 'Analyzing…' : 'Run analysis'}
+              {isPending ? 'Analyzing…' : 'Run analysis'}
             </Button>
           </div>
         </div>
@@ -160,7 +264,7 @@ export function RecommendationPage() {
               type="checkbox"
               checked={includeNonObtainable}
               onChange={(e) => setIncludeNonObtainable(e.target.checked)}
-              disabled={mutation.isPending}
+              disabled={isPending}
             />
             <span>Include unobtainable Pokémon in recommendations</span>
           </label>
@@ -172,7 +276,7 @@ export function RecommendationPage() {
                   type="button"
                   className="link-button"
                   onClick={selectAllDivisions}
-                  disabled={mutation.isPending}
+                  disabled={isPending}
                 >
                   Select all
                 </button>
@@ -180,7 +284,7 @@ export function RecommendationPage() {
                   type="button"
                   className="link-button"
                   onClick={clearDivisions}
-                  disabled={mutation.isPending}
+                  disabled={isPending}
                 >
                   Clear
                 </button>
@@ -193,7 +297,7 @@ export function RecommendationPage() {
                     type="checkbox"
                     checked={selectedDivisionCodes.has(code)}
                     onChange={() => toggleDivision(code)}
-                    disabled={mutation.isPending}
+                    disabled={isPending}
                   />
                   <span>{code}</span>
                 </label>
@@ -206,25 +310,25 @@ export function RecommendationPage() {
             )}
           </div>
         </div>
-        {mutation.isError ? (
+        {activeError !== null ? (
           <div className="stack-top">
-            <ErrorState message={getUserFacingApiMessage(mutation.error)} />
+            <ErrorState message={getUserFacingApiMessage(activeError)} />
           </div>
         ) : null}
       </Card>
 
       <Card title="Recommendations">
-        {mutation.isPending ? (
+        {isPending ? (
           <div className="center-pad">
             <Loader label="Computing recommendations…" />
           </div>
         ) : (
           <>
-            {last ? (
+            {activeResult ? (
               <div className="opponent-summary">
                 <div className="opponent-summary-title">Opponent order (from your picks)</div>
                 <ol className="opponent-order">
-                  {last.opponentTeam.map((p, idx) => (
+                  {activeResult.opponentTeam.map((p, idx) => (
                     <li key={`${p.sourceKey}-${idx}`}>
                       {p.name}{' '}
                       <span className="type-badge-row type-badge-row--inline" aria-label="Types">
@@ -236,7 +340,10 @@ export function RecommendationPage() {
                 </ol>
               </div>
             ) : null}
-            <RecommendationList items={last?.recommendations ?? []} />
+            <RecommendationList
+              state={recommendationListState}
+              items={activeResult?.recommendations ?? []}
+            />
           </>
         )}
       </Card>
