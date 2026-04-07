@@ -305,6 +305,12 @@ final class RecommendationController
      *     name: string,
      *     primaryTypeCode: string,
      *     secondaryTypeCode: string|null,
+ *     hp: int,
+ *     atk: int,
+ *     def: int,
+ *     satk: int,
+ *     sdef: int,
+ *     spe: int,
      *     score: float,
      *     matchups: list<array<string, mixed>>
      * }
@@ -316,6 +322,12 @@ final class RecommendationController
             'name' => $v->name,
             'primaryTypeCode' => $v->primaryTypeCode,
             'secondaryTypeCode' => $v->secondaryTypeCode,
+            'hp' => $v->hp,
+            'atk' => $v->atk,
+            'def' => $v->def,
+            'satk' => $v->satk,
+            'sdef' => $v->sdef,
+            'spe' => $v->spe,
             'score' => $v->score,
             'matchups' => array_map(fn (MatchupView $m): array => $this->matchupToArray($m), $v->matchups),
         ];

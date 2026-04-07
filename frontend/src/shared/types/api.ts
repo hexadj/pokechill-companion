@@ -43,6 +43,12 @@ export type RecommendationView = {
   name: string
   primaryTypeCode: string
   secondaryTypeCode: string | null
+  hp: number
+  atk: number
+  def: number
+  satk: number
+  sdef: number
+  spe: number
   score: number
   matchups: MatchupView[]
 }

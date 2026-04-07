@@ -17,6 +17,12 @@ final class RecommendationView
         public readonly string $name,
         public readonly string $primaryTypeCode,
         public readonly ?string $secondaryTypeCode,
+        public readonly int $hp,
+        public readonly int $atk,
+        public readonly int $def,
+        public readonly int $satk,
+        public readonly int $sdef,
+        public readonly int $spe,
         public readonly float $score,
         public readonly array $matchups,
     ) {

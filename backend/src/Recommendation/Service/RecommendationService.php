@@ -122,6 +122,12 @@ final class RecommendationService
                 secondaryTypeCode: $candidate->getSecondaryType() !== null
                     ? strtolower($candidate->getSecondaryType()->getCode())
                     : null,
+                hp: $candidate->getHp(),
+                atk: $candidate->getAtk(),
+                def: $candidate->getDef(),
+                satk: $candidate->getSatk(),
+                sdef: $candidate->getSdef(),
+                spe: $candidate->getSpe(),
                 score: $row['teamScore'],
                 matchups: $row['matchups'],
             );

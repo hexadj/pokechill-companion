@@ -121,12 +121,12 @@ export function RecommendationPage() {
         </details>
       </header>
 
-      <Card title="Opponent team">
+      <Card title="Opponent team" className="card-opponent-team">
         <OpponentTeamBuilder team={team} disabled={mutation.isPending} onChange={setTeam} />
       </Card>
 
       <Card title="Analysis">
-        <div className="analysis-row">
+        <div className="analysis-top">
           <div className="analysis-limit">
             <label className="label" htmlFor="rec-limit">
               Result limit (1–50)
@@ -153,7 +153,8 @@ export function RecommendationPage() {
             </Button>
           </div>
         </div>
-        <div className="analysis-filters stack-top">
+        <div className="analysis-filters">
+          <div className="analysis-filters-title">Candidate filters</div>
           <label className="checkbox-row">
             <input
               type="checkbox"

@@ -3,6 +3,26 @@ import { TypeBadge } from '../../shared/pokemon/TypeBadge'
 import type { RecommendationView } from '../../shared/types/api'
 import { RecommendationMatchupTable } from './RecommendationMatchupTable'
 
+const MAX_STARS = 6
+
+function renderStars(rating: number): boolean[] {
+  const safeRating = Math.min(MAX_STARS, Math.max(1, Math.round(rating)))
+  return Array.from({ length: MAX_STARS }, (_, idx) => idx < safeRating)
+}
+
+function renderStarsNode(rating: number) {
+  const stars = renderStars(rating)
+  return (
+    <>
+      {stars.map((isFull, idx) => (
+        <span key={idx} className={isFull ? 'stat-stars-full' : 'stat-stars-empty'}>
+          {isFull ? '★' : '☆'}
+        </span>
+      ))}
+    </>
+  )
+}
+
 type RecommendationCardProps = {
   entry: RecommendationView
   rank: number
@@ -25,6 +45,32 @@ export function RecommendationCard({ entry, rank }: RecommendationCardProps) {
             </div>
           </div>
         </div>
+        <dl className="recommendation-stats" aria-label={`${entry.name} star stats`}>
+          <div className="recommendation-stat-row">
+            <dt>HP</dt>
+            <dd className="stat-stars">{renderStarsNode(entry.hp)}</dd>
+          </div>
+          <div className="recommendation-stat-row">
+            <dt>ATK</dt>
+            <dd className="stat-stars">{renderStarsNode(entry.atk)}</dd>
+          </div>
+          <div className="recommendation-stat-row">
+            <dt>DEF</dt>
+            <dd className="stat-stars">{renderStarsNode(entry.def)}</dd>
+          </div>
+          <div className="recommendation-stat-row">
+            <dt>SATK</dt>
+            <dd className="stat-stars">{renderStarsNode(entry.satk)}</dd>
+          </div>
+          <div className="recommendation-stat-row">
+            <dt>SDEF</dt>
+            <dd className="stat-stars">{renderStarsNode(entry.sdef)}</dd>
+          </div>
+          <div className="recommendation-stat-row">
+            <dt>SPE</dt>
+            <dd className="stat-stars">{renderStarsNode(entry.spe)}</dd>
+          </div>
+        </dl>
         <div className="recommendation-score">{entry.score.toFixed(2)}</div>
       </header>
       <details className="recommendation-details">
