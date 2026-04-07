@@ -14,7 +14,7 @@ const fixtures = vi.hoisted(() => {
     secondaryTypeCode: null,
     hp: 3,
     atk: 4,
-    def: 3,https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/Arnaud/.cursor/extensions/openai.chatgpt-26.325.31654-win32-x64/webview/
+    def: 3,
     satk: 4,
     sdef: 3,
     spe: 3,
