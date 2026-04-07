@@ -752,6 +752,11 @@ p {
   font-size: 0.85rem;
 }
 
+.recommendation-division {
+  margin-top: 0.2rem;
+  font-size: 0.74rem;
+}
+
 .recommendation-score {
   color: var(--text-h);
   font: inherit;

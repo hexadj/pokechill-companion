@@ -311,6 +311,7 @@ final class RecommendationController
  *     satk: int,
  *     sdef: int,
  *     spe: int,
+ *     division: string,
      *     score: float,
      *     matchups: list<array<string, mixed>>
      * }
@@ -328,6 +329,7 @@ final class RecommendationController
             'satk' => $v->satk,
             'sdef' => $v->sdef,
             'spe' => $v->spe,
+            'division' => $v->division,
             'score' => $v->score,
             'matchups' => array_map(fn (MatchupView $m): array => $this->matchupToArray($m), $v->matchups),
         ];

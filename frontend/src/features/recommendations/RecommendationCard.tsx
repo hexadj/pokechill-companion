@@ -43,6 +43,7 @@ export function RecommendationCard({ entry, rank }: RecommendationCardProps) {
               <TypeBadge typeCode={entry.primaryTypeCode} />
               {entry.secondaryTypeCode ? <TypeBadge typeCode={entry.secondaryTypeCode} /> : null}
             </div>
+            <div className="recommendation-division muted">Division {entry.division}</div>
           </div>
         </div>
         <dl className="recommendation-stats" aria-label={`${entry.name} star stats`}>

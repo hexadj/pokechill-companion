@@ -23,6 +23,7 @@ final class RecommendationView
         public readonly int $satk,
         public readonly int $sdef,
         public readonly int $spe,
+        public readonly string $division,
         public readonly float $score,
         public readonly array $matchups,
     ) {

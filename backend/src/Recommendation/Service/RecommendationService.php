@@ -115,6 +115,14 @@ final class RecommendationService
         for ($i = 0; $i < $limit; ++$i) {
             $row = $rows[$i];
             $candidate = $row['candidate'];
+            $bstSum = $this->pokechillDivisionCalculator->bstSum(
+                $candidate->getHp(),
+                $candidate->getAtk(),
+                $candidate->getDef(),
+                $candidate->getSatk(),
+                $candidate->getSdef(),
+                $candidate->getSpe(),
+            );
             $recommendations[] = new RecommendationView(
                 sourceKey: $candidate->getSourceKey(),
                 name: $candidate->getName(),
@@ -128,6 +136,7 @@ final class RecommendationService
                 satk: $candidate->getSatk(),
                 sdef: $candidate->getSdef(),
                 spe: $candidate->getSpe(),
+                division: $this->pokechillDivisionCalculator->divisionFromBstSum($bstSum),
                 score: $row['teamScore'],
                 matchups: $row['matchups'],
             );

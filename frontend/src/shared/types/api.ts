@@ -49,6 +49,7 @@ export type RecommendationView = {
   satk: number
   sdef: number
   spe: number
+  division: string
   score: number
   matchups: MatchupView[]
 }
