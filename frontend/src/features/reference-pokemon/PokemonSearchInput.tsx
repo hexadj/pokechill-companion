@@ -85,7 +85,7 @@ export function PokemonSearchInput({ disabled, teamSize, onPick }: PokemonSearch
               </div>
             ) : null}
             {!isPending && !isError && items.length === 0 ? (
-              <div className="search-results-pad muted">No matches.</div>
+              <div className="search-results-pad muted">No Pokémon found.</div>
             ) : null}
             {!isPending && !isError
               ? items.map((p) => (
@@ -108,7 +108,7 @@ export function PokemonSearchInput({ disabled, teamSize, onPick }: PokemonSearch
           </div>
         ) : null}
       </div>
-      {!canAdd ? <p className="hint">Team is full (6).</p> : null}
+      {!canAdd ? <p className="hint">Opponent team is full (6).</p> : null}
     </div>
   )
 }

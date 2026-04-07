@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 
 import { fetchPokeApiSpriteUrl } from './pokeApiSprites'
 
@@ -30,13 +30,14 @@ export function PokemonSprite({ sourceKey, name, variant = 'team' }: PokemonSpri
     retry: 1,
   })
 
-  const [imgFailed, setImgFailed] = useState(false)
-  useEffect(() => {
-    setImgFailed(false)
-  }, [spriteUrl])
+  const [failedSpriteUrl, setFailedSpriteUrl] = useState<string | null>(null)
 
   const showFallback =
-    isPending || isError || spriteUrl == null || spriteUrl === '' || imgFailed
+    isPending ||
+    isError ||
+    spriteUrl == null ||
+    spriteUrl === '' ||
+    failedSpriteUrl === spriteUrl
 
   if (showFallback) {
     return <div className={classes.fallback} aria-hidden />
@@ -49,7 +50,7 @@ export function PokemonSprite({ sourceKey, name, variant = 'team' }: PokemonSpri
       className={classes.img}
       loading="lazy"
       decoding="async"
-      onError={() => setImgFailed(true)}
+      onError={() => setFailedSpriteUrl(spriteUrl)}
     />
   )
 }

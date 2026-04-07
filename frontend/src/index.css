@@ -277,7 +277,7 @@ p {
   height: 104px;
   max-width: 100%;
   object-fit: contain;
-  /* Smooth scaling for PokéAPI official artwork; pixelated mode is for retro sprites only */
+  /* Keep smooth scaling for high-resolution artwork; pixelated mode is for retro sprites only. */
 }
 
 .team-slot-sprite-fallback {
@@ -434,6 +434,10 @@ p {
   padding: 0.75rem;
 }
 
+.search-results-pad .link-button {
+  margin-top: 0.5rem;
+}
+
 .search-result-row {
   width: 100%;
   max-width: 100%;
@@ -467,19 +471,6 @@ p {
   gap: 0.25rem;
   align-items: center;
   margin-top: 0.2rem;
-}
-
-.link-button {
-  margin-top: 0.5rem;
-  border: 0;
-  background: transparent;
-  color: var(--accent);
-  cursor: pointer;
-  font: inherit;
-  font-weight: 600;
-  border-radius: 8px;
-  padding: 0.2rem 0;
-  text-decoration: underline;
 }
 
 .loader {
@@ -640,8 +631,10 @@ p {
 
 .link-button {
   font: inherit;
+  font-weight: 600;
   padding: 0;
   border: none;
+  border-radius: 8px;
   background: none;
   color: var(--accent);
   cursor: pointer;
