@@ -20,7 +20,8 @@ WORKDIR /var/www/html
 COPY backend/ /var/www/html/
 
 RUN composer install --no-dev --no-interaction --optimize-autoloader --no-scripts \
-    && chown -R www-data:www-data var
+    && mkdir -p var/cache var/log \
+    && chown -R www-data:www-data var public
 
 COPY docker/php/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh

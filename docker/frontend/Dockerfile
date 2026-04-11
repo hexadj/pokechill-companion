@@ -14,4 +14,5 @@ COPY --from=frontend-builder /app/dist /srv
 
 EXPOSE 8080
 
-CMD ["miniserve", "/srv", "-p", "8080", "--spa"]
+# L’image a déjà ENTRYPOINT [/app/miniserve]. --spa exige --index (miniserve récent).
+CMD ["-p", "8080", "--index", "index.html", "--spa", "/srv"]

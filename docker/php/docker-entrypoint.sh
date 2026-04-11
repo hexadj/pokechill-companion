@@ -10,7 +10,7 @@ if [ -n "${DATABASE_URL:-}" ]; then
   echo "Waiting for database..."
   attempts=0
   max_attempts=60
-  until su www-data -s /bin/sh -c "cd /var/www/html && php bin/console doctrine:query:sql 'SELECT 1'" > /dev/null 2>&1; do
+  until su www-data -s /bin/sh -c "cd /var/www/html && php bin/console dbal:run-sql 'SELECT 1'" > /dev/null 2>&1; do
     attempts=$((attempts + 1))
     if [ "$attempts" -ge "$max_attempts" ]; then
       echo "Database not reachable after ${max_attempts} attempts."
