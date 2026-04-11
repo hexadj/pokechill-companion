@@ -11,3 +11,9 @@
 
 # project management (hors dépôt)
 project-management/
+
+# docker compose (racine) : secrets ; partir de .env.docker.example en local
+/.env
+# overrides locaux Docker Compose (chemins machine, ports de dev, etc.)
+/compose.override.yaml
+/compose.override.yml

@@ -1,0 +1,15 @@
+# Contexte : répertoire racine du dépôt (docker compose build).
+.git
+**/.DS_Store
+**/node_modules
+**/vendor
+backend/var
+# Secrets / overrides Symfony (ne pas embarquer dans l’image)
+backend/.env.local
+backend/.env.*.local
+backend/.env.local.php
+# Fichier .env à la racine (secrets docker compose) si présent localement
+/.env
+frontend/dist
+*.md
+!README.md

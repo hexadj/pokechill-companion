@@ -1,0 +1,2 @@
+# Scripts exécutés dans des images Linux (Pi, CI) : éviter CRLF sous Windows
+docker/**/docker-entrypoint.sh text eol=lf
